@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staffarda Bus</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg-soft: #111a2b;
+      --card: #162236;
+      --card-hover: #1b2b44;
+      --text: #eef4ff;
+      --muted: #98a8c3;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 16px 40px rgba(0,0,0,0.32);
+      --accent: #5aa9ff;
+      --accent-soft: rgba(90,169,255,0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, #162845 0%, var(--bg) 42%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      padding: 28px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      max-width: 520px;
+      width: 100%;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero {
+      margin-bottom: 26px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #203657, #16243a);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-size: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 0 auto;
+      max-width: 420px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.5;
+    }
+
+    .section-label {
+      margin: 28px 0 14px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .stop {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--card), #121d2f);
+      color: var(--text);
+      border-radius: 20px;
+      padding: 18px 18px 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stop:hover {
+      background: linear-gradient(180deg, var(--card-hover), #15253c);
+      border-color: rgba(90,169,255,0.28);
+    }
+
+    .stop:active {
+      transform: scale(0.985);
+    }
+
+    .stop-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .badge {
+      min-width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      border: 1px solid rgba(90,169,255,0.18);
+      color: #cfe6ff;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      padding: 0 8px;
+    }
+
+    .stop-text {
+      min-width: 0;
+    }
+
+    .stop-name {
+      display: block;
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stop-code {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .chevron {
+      flex: 0 0 auto;
+      margin-left: 12px;
+      color: #7ea9d8;
+      font-size: 1.3rem;
+    }
+
+    .hint {
+      margin: 24px auto 0;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.5;
+      max-width: 460px;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(18px);
+      background: rgba(10, 18, 31, 0.92);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 0.94rem;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (min-width: 700px) {
+      .app {
+        max-width: 560px;
+      }
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div class="title-row">
+        <div class="icon">🚌</div>
+        <div>
+          <h1>Staffarda Bus</h1>
+        </div>
+      </div>
+    </header>
+
+    <p class="section-label">Fermate Staffarda</p>
+
+    <section class="grid" id="stops"></section>
+
+    <div class="hint">Suggerimento: Nel dubbio non andare al Poli.</div>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    const stops = [
+      { line: '15', name: '15 Mongi', code: '548' },
+      { line: '15', name: '15 Poli', code: '549' },
+      { line: '33 42 56', name: '33 Peschi', code: '2391' },
+      { line: '33 42 56', name: '33 Poli', code: '877' },
+      { line: '16CS', name: '16 Valentino', code: '620' },
+      { line: '16CD', name: '16 Scupet', code: '592' },
+      { line: '55 56', name: '55 Susa', code: '1514' },
+      { line: '55 56', name: '55 Robilant', code: '1515' },
+      { line: '16CD 9', name: 'Valentino', code: '610' }
+    ];
+
+    const container = document.getElementById('stops');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1400);
+    }
+
+    function openStop(code, name) {
+      showToast(`Apro ${name} · fermata ${code}`);
+      const url = `https://www.gtt.to.it/cms/percorari/arrivi?palina=${encodeURIComponent(code)}`;
+      window.open(url, '_blank');
+    }
+
+    stops.forEach(stop => {
+      const button = document.createElement('button');
+      button.className = 'stop';
+      button.type = 'button';
+      button.innerHTML = `
+        <div class="stop-main">
+          <div class="badge">${stop.line}</div>
+          <div class="stop-text">
+            <span class="stop-name">${stop.name}</span>
+            <span class="stop-code">Fermata ${stop.code}</span>
+          </div>
+        </div>
+        <div class="chevron">›</div>
+      `;
+      button.addEventListener('click', () => openStop(stop.code, stop.name));
+      container.appendChild(button);
+    });
+  </script>
+</body>
+</html>
