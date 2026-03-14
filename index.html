@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Staffarda Bus</title>
 <link rel="icon" href="icon.png" type="image/png" sizes="512x512">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -11,266 +11,340 @@
 <meta name="theme-color" content="#0b1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    :root {
-      --bg: #0b1220;
-      --bg-soft: #111a2b;
-      --card: #162236;
-      --card-hover: #1b2b44;
-      --text: #eef4ff;
-      --muted: #98a8c3;
-      --border: rgba(255,255,255,0.08);
-      --shadow: 0 16px 40px rgba(0,0,0,0.32);
-      --accent: #5aa9ff;
-      --accent-soft: rgba(90,169,255,0.16);
-    }
 
-    * { box-sizing: border-box; }
+<style>
+  :root {
+    --bg: #0b1220;
+    --bg-2: #0f1b33;
+    --card: rgba(22, 34, 54, 0.88);
+    --card-hover: rgba(27, 43, 68, 0.96);
+    --text: #eef4ff;
+    --muted: #98a8c3;
+    --border: rgba(255,255,255,0.08);
+    --shadow: 0 14px 30px rgba(0,0,0,0.28);
+    --accent: #5aa9ff;
+    --accent-soft: rgba(90,169,255,0.16);
+    --live: #d9e8ff;
+    --error: #ffb4b4;
+    --radius: 22px;
+  }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top, #162845 0%, var(--bg) 42%),
-        var(--bg);
-      color: var(--text);
-    }
+  * { box-sizing: border-box; }
 
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top, #17315d 0%, var(--bg) 38%),
+      linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    color: var(--text);
+  }
+
+  body {
+    padding: max(18px, env(safe-area-inset-top)) 14px max(26px, env(safe-area-inset-bottom));
+  }
+
+  .app {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .brand img {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    flex: 0 0 auto;
+  }
+
+  .brand-copy {
+    min-width: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .subtitle {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .refresh-btn {
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    border-radius: 14px;
+    min-width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+
+  .refresh-btn:active {
+    transform: scale(0.98);
+  }
+
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 18px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .section-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stop {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--card), rgba(18,29,47,0.95));
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: start;
+    text-align: left;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    min-height: auto;
+  }
+
+  .stop:hover {
+    background: linear-gradient(180deg, var(--card-hover), rgba(21,37,60,0.98));
+    border-color: rgba(90,169,255,0.28);
+  }
+
+  .stop:active {
+    transform: scale(0.988);
+  }
+
+  .stop-main {
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  .stop-name {
+    display: block;
+    font-size: 1.06rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1.15;
+  }
+
+  .stop-code {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.86rem;
+    color: var(--muted);
+  }
+
+  .stop-live {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--live);
+  }
+
+  .live-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .live-line {
+    min-width: 40px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    background: rgba(90,169,255,0.14);
+    border: 1px solid rgba(90,169,255,0.16);
+    color: #d7e9ff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .live-times {
+    color: var(--live);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-size: 0.82rem;
+  }
+
+  .live-times strong {
+    font-size: 0.95rem;
+    color: #ffffff;
+    font-weight: 800;
+  }
+
+  .stop-live.loading,
+  .stop-live.empty,
+  .stop-live.error {
+    display: block;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  .stop-live.loading { color: var(--muted); }
+  .stop-live.empty { color: var(--live); }
+  .stop-live.error { color: var(--error); }
+
+  .chevron {
+    align-self: center;
+    color: #7ea9d8;
+    font-size: 1.2rem;
+    padding-top: 2px;
+  }
+
+  .hint {
+    margin: 16px auto 0;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(18px);
+    background: rgba(10, 18, 31, 0.94);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 0.92rem;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+    backdrop-filter: blur(8px);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (min-width: 760px) {
     body {
       padding: 28px 16px 40px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app {
-      max-width: 520px;
-      width: 100%;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .hero {
-      margin-bottom: 26px;
-    }
-
-    .title-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 10px;
-    }
-
-    .icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(180deg, #203657, #16243a);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-    }
-
-    .icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 2rem;
-      letter-spacing: -0.03em;
-      line-height: 1;
-    }
-
-    .subtitle {
-      margin: 0 auto;
-      max-width: 420px;
-      color: var(--muted);
-      font-size: 0.98rem;
-      line-height: 1.5;
-    }
-
-    .section-label {
-      margin: 28px 0 14px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      text-align: center;
     }
 
     .grid {
-      display: grid;
-      gap: 14px;
-      justify-content: center;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-
-    .stop {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--card), #121d2f);
-      color: var(--text);
-      border-radius: 20px;
-      padding: 18px 18px 17px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      text-align: left;
-      box-shadow: var(--shadow);
-      cursor: pointer;
-      transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .stop:hover {
-      background: linear-gradient(180deg, var(--card-hover), #15253c);
-      border-color: rgba(90,169,255,0.28);
-    }
-
-    .stop:active {
-      transform: scale(0.985);
-    }
-
-    .stop-main {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .badge {
-      min-width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      background: var(--accent-soft);
-      border: 1px solid rgba(90,169,255,0.18);
-      color: #cfe6ff;
-      font-weight: 800;
-      font-size: 1rem;
-      letter-spacing: -0.02em;
-      padding: 0 8px;
-    }
-
-    .stop-text {
-      min-width: 0;
-    }
-
-    .stop-name {
-      display: block;
-      font-size: 1.08rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stop-code {
-      display: block;
-      margin-top: 4px;
-      font-size: 0.92rem;
-      color: var(--muted);
-    }
-
-    .chevron {
-      flex: 0 0 auto;
-      margin-left: 12px;
-      color: #7ea9d8;
-      font-size: 1.3rem;
-    }
-
-    .hint {
-      margin: 24px auto 0;
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 0.93rem;
-      line-height: 1.5;
-      max-width: 460px;
-      text-align: center;
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%) translateY(18px);
-      background: rgba(10, 18, 31, 0.92);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 12px 16px;
-      font-size: 0.94rem;
-      box-shadow: var(--shadow);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      z-index: 20;
-      backdrop-filter: blur(8px);
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    @media (min-width: 700px) {
-      .app {
-        max-width: 560px;
-      }
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
   <main class="app">
-    <header class="hero">
-      <div class="title-row">
-        <img src="icon-192.png" alt="Staffarda Bus" width="40" height="40">
-        <div>
+    <header class="topbar">
+      <div class="brand">
+        <img src="icon-192.png" alt="Staffarda Bus" width="42" height="42">
+        <div class="brand-copy">
           <h1>Staffarda Bus</h1>
+          <p class="subtitle">Arrivi live per le fermate che usi davvero</p>
         </div>
       </div>
+      <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna orari">↻</button>
     </header>
 
-    <p class="section-label">Fermate Staffarda</p>
+    <div class="status-row">
+      <span class="section-label">Fermate Staffarda</span>
+      <span id="lastUpdate">Aggiornamento iniziale...</span>
+    </div>
 
     <section class="grid" id="stops"></section>
 
-    <div class="hint">Suggerimento: Nel dubbio non andare al Poli.</div>
+    <div class="hint">Tocca una card per aprire il dettaglio completo GTT della fermata.</div>
   </main>
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script>
+    const API_BASE = "https://staffarda-bus-api.lorenzo-tegliucci.workers.dev";
+
     const stops = [
-      { line: '15', name: '15 Mongi', code: '548' },
-      { line: '15', name: '15 Poli', code: '549' },
-      { line: '33 42 56', name: '33 Peschi', code: '2391' },
-      { line: '33 42 56', name: '33 Poli', code: '877' },
-      { line: '16CS', name: '16 Valentino', code: '620' },
-      { line: '16CD', name: '16 Scupet', code: '592' },
-      { line: '55 56', name: '55 Susa', code: '1514' },
-      { line: '55 56', name: '55 Robilant', code: '1515' },
-      { line: '16CD 9', name: 'Valentino', code: '610' }
+      { name: '15 Mongi', code: '548', show: ['15'] },
+      { name: '15 Poli', code: '549', show: ['15'] },
+
+      { name: '33 42 56 Peschi', code: '2391', show: ['33', '42', '56'] },
+      { name: '33 42 56 Poli', code: '877', show: ['33', '42', '56'] },
+
+      { name: '16CS Valentino', code: '620', show: ['16 CS'] },
+      { name: '16CD Scupet', code: '592', show: ['16 CD'] },
+
+      { name: '55 Susa', code: '1514', show: ['55'] },
+      { name: '55 Robilant', code: '1515', show: ['55'] },
+
+      { name: 'Valentino', code: '610', show: ['16 CD', '9'] }
     ];
 
     const container = document.getElementById('stops');
     const toast = document.getElementById('toast');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const lastUpdate = document.getElementById('lastUpdate');
     let toastTimer;
 
     function showToast(text) {
@@ -286,28 +360,103 @@
       window.open(url, '_blank');
     }
 
-    stops.forEach(stop => {
+    function normalizeLine(value) {
+      return String(value)
+        .replace(/\s+/g, '')
+        .replace(/-/g, '')
+        .toUpperCase();
+    }
+
+    function setLastUpdate() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      lastUpdate.textContent = `Aggiornato alle ${hh}:${mm}`;
+    }
+
+    function formatLiveRows(stop, arrivals) {
+      const wanted = stop.show.map(normalizeLine);
+
+      const filtered = arrivals.filter(item => {
+        const line = normalizeLine(item.line);
+        return wanted.includes(line);
+      });
+
+      if (!filtered.length) {
+        return '<span class="stop-live empty">Nessun orario trovato</span>';
+      }
+
+      const rows = filtered.map(item => {
+        const first = item.times[0] || '';
+        const rest = item.times.slice(1, 3).join(' • ');
+
+      const timesHtml = rest
+        ? `<span class="live-times"><strong>${first}</strong> • ${rest}</span>`
+        : `<span class="live-times"><strong>${first}</strong></span>`;
+
+        return `
+          <div class="live-row">
+            <span class="live-line">${item.line}</span>
+            ${timesHtml}
+          </div>
+        `;
+      }).join('');
+
+      return `<div class="stop-live">${rows}</div>`;
+    }
+
+    async function loadArrivals(stop, liveEl) {
+      liveEl.className = 'stop-live loading';
+      liveEl.textContent = 'Caricamento orari...';
+
+      try {
+        const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(stop.code)}`);
+        const data = await response.json();
+        liveEl.outerHTML = formatLiveRows(stop, data);
+      } catch (error) {
+        console.error('Errore arrivi:', error);
+        liveEl.className = 'stop-live error';
+        liveEl.textContent = 'Orari non disponibili';
+      }
+    }
+
+    function buildCard(stop) {
       const button = document.createElement('button');
+
       button.className = 'stop';
       button.type = 'button';
       button.innerHTML = `
         <div class="stop-main">
-          <div class="badge">${stop.line}</div>
-          <div class="stop-text">
-            <span class="stop-name">${stop.name}</span>
-            <span class="stop-code">Fermata ${stop.code}</span>
-          </div>
+          <span class="stop-name">${stop.name}</span>
+          <span class="stop-code">Fermata ${stop.code}</span>
+          <span class="stop-live loading">Caricamento orari...</span>
         </div>
         <div class="chevron">›</div>
       `;
+
       button.addEventListener('click', () => openStop(stop.code, stop.name));
-      container.appendChild(button);
+      return button;
+    }
+
+    async function renderStops() {
+      container.innerHTML = '';
+
+      stops.forEach(stop => {
+        const card = buildCard(stop);
+        container.appendChild(card);
+      });
+
+      const liveEls = [...container.querySelectorAll('.stop-live')];
+      await Promise.all(stops.map((stop, index) => loadArrivals(stop, liveEls[index])));
+      setLastUpdate();
+    }
+
+    refreshBtn.addEventListener('click', async () => {
+      showToast('Aggiorno gli orari');
+      await renderStops();
     });
+
+    renderStops();
   </script>
 </body>
 </html>
-
-
-
-
-
