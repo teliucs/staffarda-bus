@@ -69,29 +69,6 @@ Replace the stop number with the one you want to monitor.
 
 You can find stop IDs on the official GTT website.
 
-## Development
-
-Run locally:
-
-```bash
-npm install
-npm run dev
-```
-
-Open:
-
-```
-http://localhost:8787
-```
-
-## Deploy
-
-Deploy the worker to Cloudflare:
-
-```bash
-npm run deploy
-```
-
 ## Screenshot
 
 <img src="screenshots/app-preview.png" alt="Staffarda Bus mobile interface showing live GTT bus arrivals" width="420" />
@@ -103,4 +80,4 @@ It simply reads publicly available arrival information from their website.
 
 ## License
 
-MIT
+GNU
