@@ -324,6 +324,7 @@
 
   <script>
     const API_BASE = "https://staffarda-bus-api.lorenzo-tegliucci.workers.dev";
+    const PIRATE_API = "https://gpa.madbob.org/query.php";
 
     const stops = [
       { name: '15 Mongi', code: '548', show: ['15'] },
@@ -379,6 +380,26 @@
       lastUpdate.textContent = `Aggiornato alle ${hh}:${mm}`;
     }
 
+    // Transform Pirate API response: [{line, hour, realtime}] → grouped by line
+    function transformPirateData(data) {
+      const grouped = {};
+      for (const entry of data) {
+        const line = entry.line;
+        if (!grouped[line]) grouped[line] = { line, times: [] };
+        const hhmm = entry.hour.substring(0, 5);
+        grouped[line].times.push({ time: hhmm, realtime: entry.realtime });
+      }
+      return Object.values(grouped);
+    }
+
+    // Transform our fallback API response: [{line, times: [str]}] → same format
+    function transformFallbackData(data) {
+      return data.map(item => ({
+        line: item.line,
+        times: item.times.map(t => ({ time: t, realtime: null }))
+      }));
+    }
+
     function formatLiveRows(stop, arrivals) {
       const wanted = stop.show.map(normalizeLine);
 
@@ -392,12 +413,12 @@
       }
 
       const rows = filtered.map(item => {
-        const first = item.times[0] || '';
-        const rest = item.times.slice(1, 3).join(' • ');
-
-      const timesHtml = rest
-        ? `<span class="live-times"><strong>${first}</strong> • ${rest}</span>`
-        : `<span class="live-times"><strong>${first}</strong></span>`;
+        const slots = item.times.slice(0, 4);
+        const parts = slots.map((s, i) => {
+          const label = s.realtime ? s.time + '*' : s.time;
+          return i === 0 ? `<strong>${label}</strong>` : label;
+        });
+        const timesHtml = `<span class="live-times">${parts.join(' • ')}</span>`;
 
         return `
           <div class="live-row">
@@ -410,29 +431,40 @@
       return `<div class="stop-live">${rows}</div>`;
     }
 
+    async function fetchStop(code) {
+      // Try Pirate API first (has realtime flag)
+      try {
+        const res = await fetch(`${PIRATE_API}?stop=${encodeURIComponent(code)}`);
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        return transformPirateData(data);
+      } catch (e) {
+        console.warn(`Pirate API fallback for stop ${code}:`, e);
+      }
+      // Fallback to our API
+      const res = await fetch(`${API_BASE}/?stop=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      return transformFallbackData(data);
+    }
+
     async function loadArrivals(stop, liveEl) {
       liveEl.className = 'stop-live loading';
       liveEl.textContent = 'Caricamento orari...';
 
       try {
-        let allArrivals = [];
-
         if (stop.sources) {
           const fetches = stop.sources.map(async (src) => {
-            const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(src.code)}`);
-            const data = await response.json();
+            const arrivals = await fetchStop(src.code);
             const wanted = src.show.map(normalizeLine);
-            return data.filter(item => wanted.includes(normalizeLine(item.line)));
+            return arrivals.filter(item => wanted.includes(normalizeLine(item.line)));
           });
           const results = await Promise.all(fetches);
-          allArrivals = results.flat();
-          // Build a virtual stop with all show lines for formatting
+          const allArrivals = results.flat();
           const allShow = stop.sources.flatMap(s => s.show);
           liveEl.outerHTML = formatLiveRows({ ...stop, show: allShow }, allArrivals);
         } else {
-          const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(stop.code)}`);
-          const data = await response.json();
-          liveEl.outerHTML = formatLiveRows(stop, data);
+          const arrivals = await fetchStop(stop.code);
+          liveEl.outerHTML = formatLiveRows(stop, arrivals);
         }
       } catch (error) {
         console.error('Errore arrivi:', error);
