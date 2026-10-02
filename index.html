@@ -381,6 +381,7 @@
     }
 
     // Transform Pirate API response: [{line, hour, realtime}] → grouped by line
+    // If realtime entries exist for a line, only show those (drop programmed duplicates)
     function transformPirateData(data) {
       const grouped = {};
       for (const entry of data) {
@@ -388,6 +389,13 @@
         if (!grouped[line]) grouped[line] = { line, times: [] };
         const hhmm = entry.hour.substring(0, 5);
         grouped[line].times.push({ time: hhmm, realtime: entry.realtime });
+      }
+      for (const key of Object.keys(grouped)) {
+        const times = grouped[key].times;
+        const hasRealtime = times.some(t => t.realtime);
+        if (hasRealtime) {
+          grouped[key].times = times.filter(t => t.realtime);
+        }
       }
       return Object.values(grouped);
     }
