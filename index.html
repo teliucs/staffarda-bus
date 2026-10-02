@@ -316,29 +316,54 @@
   }
 
   /* Andata: blue accent */
+  .section.andata .stop {
+    border-left: 3px solid rgba(90,169,255,0.5);
+  }
   .section.andata .live-line {
-    background: rgba(90,169,255,0.14);
-    border-color: rgba(90,169,255,0.16);
+    background: rgba(90,169,255,0.18);
+    border-color: rgba(90,169,255,0.25);
     color: #d7e9ff;
   }
   .section.andata .stop:hover {
-    border-color: rgba(90,169,255,0.28);
+    border-color: rgba(90,169,255,0.35);
+    border-left-color: rgba(90,169,255,0.7);
   }
   .section.andata .section-title {
-    color: #5aa9ff;
+    color: #6bb5ff;
   }
 
-  /* Ritorno: teal accent */
+  /* Ritorno: teal/green accent */
+  .section.ritorno .stop {
+    border-left: 3px solid rgba(77,205,180,0.5);
+  }
   .section.ritorno .live-line {
-    background: rgba(77,205,180,0.14);
-    border-color: rgba(77,205,180,0.16);
+    background: rgba(77,205,180,0.18);
+    border-color: rgba(77,205,180,0.25);
     color: #c8f5ec;
   }
   .section.ritorno .stop:hover {
-    border-color: rgba(77,205,180,0.28);
+    border-color: rgba(77,205,180,0.35);
+    border-left-color: rgba(77,205,180,0.7);
   }
   .section.ritorno .section-title {
-    color: #4ecdb4;
+    color: #5ee0c0;
+  }
+
+  /* Misc: amber accent */
+  .section.misc .stop {
+    border-left: 3px solid rgba(255,183,77,0.5);
+  }
+  .section.misc .live-line {
+    background: rgba(255,183,77,0.18);
+    border-color: rgba(255,183,77,0.25);
+    color: #fff0d4;
+  }
+  .section.misc .stop:hover {
+    border-color: rgba(255,183,77,0.35);
+    border-left-color: rgba(255,183,77,0.7);
+  }
+  .section.misc .section-title {
+    color: #ffb74d;
   }
 
   /* Mobile compact */
@@ -433,10 +458,9 @@
     const sections = [
       {
         id: 'andata',
-        label: 'Andata — Casa → Destinazione',
+        label: 'Andata',
         stops: [
           { name: '15 Poli', code: '549', show: ['15'] },
-          { name: '33 42 56 Peschi', code: '2391', show: ['33', '42', '56'] },
           { name: '33 42 56 Poli', code: '877', show: ['33', '42', '56'] },
           { name: '16CS Valentino', code: '620', show: ['16 CS'] },
           { name: '16CD Scupet', code: '592', show: ['16 CD'] },
@@ -445,16 +469,23 @@
       },
       {
         id: 'ritorno',
-        label: 'Ritorno — Destinazione → Casa',
+        label: 'Ritorno',
         stops: [
-          { name: '15 Mongi', code: '548', show: ['15'] },
-          { name: '55 Robilant', code: '1515', show: ['55'] },
-          { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
+          { name: 'Poli Casa', code: '617', show: ['15', '16 CD', '33', '42'] },
           { name: 'Susa Casa', sources: [
               { code: '2668', show: ['55'] },
               { code: '3350', show: ['56'] },
             ]},
-          { name: 'Poli Casa', code: '617', show: ['15', '16 CD', '33', '42'] },
+          { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
+        ],
+      },
+      {
+        id: 'misc',
+        label: 'Misc',
+        stops: [
+          { name: '15 Mongi', code: '548', show: ['15'] },
+          { name: '33 42 56 Peschi', code: '2391', show: ['33', '42', '56'] },
+          { name: '55 Robilant', code: '1515', show: ['55'] },
         ],
       },
     ];
