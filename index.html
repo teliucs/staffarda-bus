@@ -120,14 +120,7 @@
     font-size: 0.85rem;
   }
 
-  .section-label {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
+
 
   .grid {
     display: grid;
@@ -285,6 +278,117 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* Collapsible sections */
+  .section {
+    margin-bottom: 14px;
+  }
+
+  .section summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0 8px;
+    cursor: pointer;
+    list-style: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .section summary::-webkit-details-marker { display: none; }
+
+  .section summary::before {
+    content: '▸';
+    font-size: 0.75rem;
+    color: var(--muted);
+    transition: transform 0.2s ease;
+  }
+
+  .section[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Andata: blue accent */
+  .section.andata .live-line {
+    background: rgba(90,169,255,0.14);
+    border-color: rgba(90,169,255,0.16);
+    color: #d7e9ff;
+  }
+  .section.andata .stop:hover {
+    border-color: rgba(90,169,255,0.28);
+  }
+  .section.andata .section-title {
+    color: #5aa9ff;
+  }
+
+  /* Ritorno: teal accent */
+  .section.ritorno .live-line {
+    background: rgba(77,205,180,0.14);
+    border-color: rgba(77,205,180,0.16);
+    color: #c8f5ec;
+  }
+  .section.ritorno .stop:hover {
+    border-color: rgba(77,205,180,0.28);
+  }
+  .section.ritorno .section-title {
+    color: #4ecdb4;
+  }
+
+  /* Mobile compact */
+  @media (max-width: 759px) {
+    .stop {
+      padding: 8px 10px;
+      border-radius: 16px;
+    }
+
+    .grid {
+      gap: 8px;
+    }
+
+    .stop-name {
+      font-size: 0.95rem;
+    }
+
+    .stop-code {
+      margin-top: 2px;
+      font-size: 0.78rem;
+    }
+
+    .stop-live {
+      margin-top: 5px;
+      gap: 4px;
+    }
+
+    .live-line {
+      min-width: 34px;
+      padding: 3px 6px;
+      font-size: 0.68rem;
+    }
+
+    .live-times {
+      font-size: 0.78rem;
+    }
+
+    .live-times strong {
+      font-size: 0.88rem;
+    }
+
+    .live-row {
+      gap: 6px;
+    }
+
+    .section {
+      margin-bottom: 8px;
+    }
+  }
+
   @media (min-width: 760px) {
     body {
       padding: 28px 16px 40px;
@@ -311,11 +415,11 @@
     </header>
 
     <div class="status-row">
-      <span class="section-label">Fermate Staffarda</span>
+      <span></span>
       <span id="lastUpdate">Aggiornamento iniziale...</span>
     </div>
 
-    <section class="grid" id="stops"></section>
+    <div id="sections"></div>
 
     <div class="hint">Nel dubbio non andare mai al Poli.</div>
   </main>
@@ -326,28 +430,36 @@
     const API_BASE = "https://staffarda-bus-api.lorenzo-tegliucci.workers.dev";
     const PIRATE_API = "https://gpa.madbob.org/query.php";
 
-    const stops = [
-      { name: '15 Mongi', code: '548', show: ['15'] },
-      { name: '15 Poli', code: '549', show: ['15'] },
-
-      { name: '33 42 56 Peschi', code: '2391', show: ['33', '42', '56'] },
-      { name: '33 42 56 Poli', code: '877', show: ['33', '42', '56'] },
-
-      { name: '16CS Valentino', code: '620', show: ['16 CS'] },
-      { name: '16CD Scupet', code: '592', show: ['16 CD'] },
-
-      { name: '55 Susa', code: '1514', show: ['55'] },
-      { name: '55 Robilant', code: '1515', show: ['55'] },
-
-      { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
-      { name: 'Susa Casa', sources: [
-          { code: '2668', show: ['55'] },
-          { code: '3350', show: ['56'] },
-        ]},
-      { name: 'Poli Casa', code: '617', show: ['15', '16 CD', '33', '42'] },
+    const sections = [
+      {
+        id: 'andata',
+        label: 'Andata — Casa → Destinazione',
+        stops: [
+          { name: '15 Poli', code: '549', show: ['15'] },
+          { name: '33 42 56 Peschi', code: '2391', show: ['33', '42', '56'] },
+          { name: '33 42 56 Poli', code: '877', show: ['33', '42', '56'] },
+          { name: '16CS Valentino', code: '620', show: ['16 CS'] },
+          { name: '16CD Scupet', code: '592', show: ['16 CD'] },
+          { name: '55 Susa', code: '1514', show: ['55'] },
+        ],
+      },
+      {
+        id: 'ritorno',
+        label: 'Ritorno — Destinazione → Casa',
+        stops: [
+          { name: '15 Mongi', code: '548', show: ['15'] },
+          { name: '55 Robilant', code: '1515', show: ['55'] },
+          { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
+          { name: 'Susa Casa', sources: [
+              { code: '2668', show: ['55'] },
+              { code: '3350', show: ['56'] },
+            ]},
+          { name: 'Poli Casa', code: '617', show: ['15', '16 CD', '33', '42'] },
+        ],
+      },
     ];
 
-    const container = document.getElementById('stops');
+    const sectionsEl = document.getElementById('sections');
     const toast = document.getElementById('toast');
     const refreshBtn = document.getElementById('refreshBtn');
     const lastUpdate = document.getElementById('lastUpdate');
@@ -504,15 +616,45 @@
     }
 
     async function renderStops() {
-      container.innerHTML = '';
-
-      stops.forEach(stop => {
-        const card = buildCard(stop);
-        container.appendChild(card);
+      // Remember which sections are open
+      const openState = {};
+      sectionsEl.querySelectorAll('.section').forEach(det => {
+        openState[det.dataset.id] = det.open;
       });
 
-      const liveEls = [...container.querySelectorAll('.stop-live')];
-      await Promise.all(stops.map((stop, index) => loadArrivals(stop, liveEls[index])));
+      sectionsEl.innerHTML = '';
+      const allLoadTasks = [];
+
+      for (const section of sections) {
+        const details = document.createElement('details');
+        details.className = `section ${section.id}`;
+        details.dataset.id = section.id;
+        // Default open, or preserve previous state
+        details.open = openState[section.id] !== undefined ? openState[section.id] : true;
+
+        const summary = document.createElement('summary');
+        summary.innerHTML = `<span class="section-title">${section.label}</span>`;
+        details.appendChild(summary);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        for (const stop of section.stops) {
+          const card = buildCard(stop);
+          grid.appendChild(card);
+        }
+
+        details.appendChild(grid);
+        sectionsEl.appendChild(details);
+
+        // Queue load tasks
+        const liveEls = [...grid.querySelectorAll('.stop-live')];
+        section.stops.forEach((stop, index) => {
+          allLoadTasks.push(loadArrivals(stop, liveEls[index]));
+        });
+      }
+
+      await Promise.all(allLoadTasks);
       setLastUpdate();
     }
 
