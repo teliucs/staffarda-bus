@@ -339,8 +339,10 @@
       { name: '55 Robilant', code: '1515', show: ['55'] },
 
       { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
-      { name: 'Susa Casa', code: '2668', show: ['55'] },
-      { name: 'Susa Casa', code: '3350', show: ['56'] },
+      { name: 'Susa Casa', sources: [
+          { code: '2668', show: ['55'] },
+          { code: '3350', show: ['56'] },
+        ]},
       { name: 'Poli Casa', code: '617', show: ['15', '16', '33', '42', '56'] },
     ];
 
@@ -413,9 +415,25 @@
       liveEl.textContent = 'Caricamento orari...';
 
       try {
-        const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(stop.code)}`);
-        const data = await response.json();
-        liveEl.outerHTML = formatLiveRows(stop, data);
+        let allArrivals = [];
+
+        if (stop.sources) {
+          const fetches = stop.sources.map(async (src) => {
+            const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(src.code)}`);
+            const data = await response.json();
+            const wanted = src.show.map(normalizeLine);
+            return data.filter(item => wanted.includes(normalizeLine(item.line)));
+          });
+          const results = await Promise.all(fetches);
+          allArrivals = results.flat();
+          // Build a virtual stop with all show lines for formatting
+          const allShow = stop.sources.flatMap(s => s.show);
+          liveEl.outerHTML = formatLiveRows({ ...stop, show: allShow }, allArrivals);
+        } else {
+          const response = await fetch(`${API_BASE}/?stop=${encodeURIComponent(stop.code)}`);
+          const data = await response.json();
+          liveEl.outerHTML = formatLiveRows(stop, data);
+        }
       } catch (error) {
         console.error('Errore arrivi:', error);
         liveEl.className = 'stop-live error';
@@ -425,19 +443,23 @@
 
     function buildCard(stop) {
       const button = document.createElement('button');
+      const codes = stop.sources
+        ? stop.sources.map(s => s.code)
+        : [stop.code];
+      const codeLabel = codes.map(c => `Fermata ${c}`).join(' · ');
 
       button.className = 'stop';
       button.type = 'button';
       button.innerHTML = `
         <div class="stop-main">
           <span class="stop-name">${stop.name}</span>
-          <span class="stop-code">Fermata ${stop.code}</span>
+          <span class="stop-code">${codeLabel}</span>
           <span class="stop-live loading">Caricamento orari...</span>
         </div>
         <div class="chevron">›</div>
       `;
 
-      button.addEventListener('click', () => openStop(stop.code, stop.name));
+      button.addEventListener('click', () => openStop(codes[0], stop.name));
       return button;
     }
 
