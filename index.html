@@ -664,7 +664,10 @@
       const rows = filtered.map(item => {
         const slots = item.times.slice(0, 4);
         const parts = slots.map((s, i) => {
-          const label = s.realtime ? s.time + '*' : s.time;
+          // GTT Pirate API over-reports realtime for buses far in the future.
+          // Limit the * indicator to only the first 2 upcoming buses per line.
+          const isRealLive = s.realtime && i < 2;
+          const label = isRealLive ? s.time + '*' : s.time;
           return i === 0 ? `<strong>${label}</strong>` : label;
         });
         const timesHtml = `<span class="live-times">${parts.join(' • ')}</span>`;
@@ -729,21 +732,14 @@
         : [stop.code];
       const codeLabel = codes.map(c => `Fermata ${c}`).join(' · ');
 
-      // Check for deviation alerts
-      const alerts = getStopAlerts(stop);
-      const alertHtml = alerts.length
-        ? alerts.map(a =>
-            `<div class="stop-alert">⚠ <a href="${a.link}" target="_blank" onclick="event.stopPropagation()">${a.title}</a></div>`
-          ).join('')
-        : '';
-
       button.className = 'stop';
       button.type = 'button';
+      button.dataset.stopId = stop.code || codes[0]; // For alert injection
       button.innerHTML = `
         <div class="stop-main">
           <span class="stop-name">${stop.name}</span>
           <span class="stop-code">${codeLabel}</span>
-          ${alertHtml}
+          <div class="alert-container"></div>
           <span class="stop-live loading">Caricamento orari...</span>
         </div>
         <div class="chevron">›</div>
@@ -753,10 +749,26 @@
       return button;
     }
 
-    async function renderStops() {
-      // Fetch alerts in parallel (non-blocking)
+    async function injectAlerts() {
       await fetchAlerts();
+      for (const sec of sections) {
+        for (const stop of sec.stops) {
+          const alerts = getStopAlerts(stop);
+          if (!alerts.length) continue;
+          
+          const code = stop.code || stop.sources[0].code;
+          const card = document.querySelector(`.stop[data-stop-id="${code}"]`);
+          if (card) {
+            const container = card.querySelector('.alert-container');
+            container.innerHTML = alerts.map(a =>
+              `<div class="stop-alert">⚠ <a href="${a.link}" target="_blank" onclick="event.stopPropagation()">${a.title}</a></div>`
+            ).join('');
+          }
+        }
+      }
+    }
 
+    async function renderStops() {
       // Remember which sections are open
       const openState = {};
       sectionsEl.querySelectorAll('.section').forEach(det => {
@@ -794,6 +806,9 @@
           allLoadTasks.push(loadArrivals(stop, liveEls[index]));
         });
       }
+
+      // Fire and forget alerts injection (non-blocking)
+      injectAlerts();
 
       await Promise.all(allLoadTasks);
       setLastUpdate();
