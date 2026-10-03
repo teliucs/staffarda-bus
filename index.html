@@ -242,6 +242,23 @@
     padding-top: 2px;
   }
 
+  .stop-alert {
+    margin-top: 6px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    background: rgba(255,183,77,0.12);
+    border: 1px solid rgba(255,183,77,0.2);
+    color: #ffd080;
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .stop-alert a {
+    color: #ffb74d;
+    text-decoration: underline;
+  }
+
   .hint {
     margin: 16px auto 0;
     padding: 14px 16px;
@@ -495,6 +512,77 @@
     const refreshBtn = document.getElementById('refreshBtn');
     const lastUpdate = document.getElementById('lastUpdate');
     let toastTimer;
+    let lineAlerts = {}; // { "15": [{title, link}], "33": [...] }
+
+    // Collect all line numbers we care about
+    function getAllLines() {
+      const lines = new Set();
+      for (const sec of sections) {
+        for (const stop of sec.stops) {
+          const shows = stop.sources ? stop.sources.flatMap(s => s.show) : stop.show;
+          shows.forEach(l => lines.add(l));
+        }
+      }
+      return lines;
+    }
+
+    // Fetch GTT alerts RSS and match against our lines
+    async function fetchAlerts() {
+      try {
+        const rssUrl = 'https://www.gtt.to.it/cms/avvisi-e-informazioni-di-servizio?format=feed&type=rss';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+        const res = await fetch(proxyUrl);
+        if (!res.ok) return;
+        const xml = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xml, 'text/xml');
+        const items = doc.querySelectorAll('item');
+        const ourLines = getAllLines();
+        const alerts = {};
+
+        items.forEach(item => {
+          const title = item.querySelector('title')?.textContent || '';
+          const link = item.querySelector('link')?.textContent || '';
+          // Match line numbers in title (e.g. "linea 15", "linee 33 – 42", just "15" near context)
+          const titleUpper = title.toUpperCase();
+          for (const line of ourLines) {
+            // Match the line number as a word boundary
+            const lineNum = line.replace(/\s+/g, '').toUpperCase();
+            const patterns = [
+              new RegExp(`\\b${lineNum}\\b`, 'i'),
+              new RegExp(`\\b${line.replace(/\s+/g, '\\s*')}\\b`, 'i'),
+            ];
+            if (patterns.some(p => p.test(title))) {
+              if (!alerts[line]) alerts[line] = [];
+              // Avoid duplicates
+              if (!alerts[line].some(a => a.link === link)) {
+                alerts[line].push({ title, link });
+              }
+            }
+          }
+        });
+
+        lineAlerts = alerts;
+      } catch (e) {
+        console.warn('Failed to fetch GTT alerts:', e);
+      }
+    }
+
+    // Get alerts for a stop's lines
+    function getStopAlerts(stop) {
+      const shows = stop.sources ? stop.sources.flatMap(s => s.show) : stop.show;
+      const found = [];
+      for (const line of shows) {
+        if (lineAlerts[line]) {
+          for (const alert of lineAlerts[line]) {
+            if (!found.some(f => f.link === alert.link)) {
+              found.push(alert);
+            }
+          }
+        }
+      }
+      return found;
+    }
 
     function showToast(text) {
       toast.textContent = text;
@@ -523,8 +611,13 @@
       lastUpdate.textContent = `Aggiornato alle ${hh}:${mm}`;
     }
 
+    function timeToMinutes(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
     // Transform Pirate API response: [{line, hour, realtime}] → grouped by line
-    // If realtime entries exist for a line, only show those (drop programmed duplicates)
+    // Smart dedup: drop scheduled times only if a realtime entry is within 3 min (same bus)
     function transformPirateData(data) {
       const grouped = {};
       for (const entry of data) {
@@ -535,10 +628,15 @@
       }
       for (const key of Object.keys(grouped)) {
         const times = grouped[key].times;
-        const hasRealtime = times.some(t => t.realtime);
-        if (hasRealtime) {
-          grouped[key].times = times.filter(t => t.realtime);
-        }
+        const rtTimes = times.filter(t => t.realtime);
+        if (!rtTimes.length) continue;
+        // Keep scheduled only if no realtime within 3 min
+        const kept = times.filter(t => {
+          if (t.realtime) return true;
+          const tMin = timeToMinutes(t.time);
+          return !rtTimes.some(r => Math.abs(timeToMinutes(r.time) - tMin) <= 3);
+        });
+        grouped[key].times = kept.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
       }
       return Object.values(grouped);
     }
@@ -631,12 +729,21 @@
         : [stop.code];
       const codeLabel = codes.map(c => `Fermata ${c}`).join(' · ');
 
+      // Check for deviation alerts
+      const alerts = getStopAlerts(stop);
+      const alertHtml = alerts.length
+        ? alerts.map(a =>
+            `<div class="stop-alert">⚠ <a href="${a.link}" target="_blank" onclick="event.stopPropagation()">${a.title}</a></div>`
+          ).join('')
+        : '';
+
       button.className = 'stop';
       button.type = 'button';
       button.innerHTML = `
         <div class="stop-main">
           <span class="stop-name">${stop.name}</span>
           <span class="stop-code">${codeLabel}</span>
+          ${alertHtml}
           <span class="stop-live loading">Caricamento orari...</span>
         </div>
         <div class="chevron">›</div>
@@ -647,6 +754,9 @@
     }
 
     async function renderStops() {
+      // Fetch alerts in parallel (non-blocking)
+      await fetchAlerts();
+
       // Remember which sections are open
       const openState = {};
       sectionsEl.querySelectorAll('.section').forEach(det => {
