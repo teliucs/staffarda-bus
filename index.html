@@ -217,6 +217,25 @@
     font-weight: 800;
   }
 
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: #00e676;
+    border-radius: 50%;
+    margin-right: 3px;
+    margin-bottom: 1px;
+    vertical-align: middle;
+    box-shadow: 0 0 6px rgba(0, 230, 118, 0.6);
+    animation: pulse 1.8s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.7; }
+  }
+
   .stop-live.loading,
   .stop-live.empty,
   .stop-live.error {
@@ -487,6 +506,12 @@
         label: 'Ritorno',
         stops: [
           { name: 'Poli Casa', code: '617', show: ['15', '16 CD', '33', '42'] },
+          { name: 'Panche Casa', sources: [
+              { code: '207', show: ['16 CD'] },
+              { code: '640', show: ['16 CS'] },
+              { code: '2081', show: ['68'] },
+              { code: '475', show: ['15'] }
+            ]},
           { name: 'Susa Casa', sources: [
               { code: '2668', show: ['55'] },
               { code: '3350', show: ['56'] },
@@ -663,9 +688,10 @@
         const slots = item.times.slice(0, 4);
         const parts = slots.map((s, i) => {
           // GTT Pirate API over-reports realtime for buses far in the future.
-          // Limit the * indicator to only the first 2 upcoming buses per line.
+          // Limit the realtime indicator to only the first 2 upcoming buses per line.
           const isRealLive = s.realtime && i < 2;
-          const label = isRealLive ? s.time + '*' : s.time;
+          const dot = isRealLive ? '<span class="live-dot" title="Live"></span>' : '';
+          const label = `${dot}${s.time}`;
           return i === 0 ? `<strong>${label}</strong>` : label;
         });
         const timesHtml = `<span class="live-times">${parts.join(' • ')}</span>`;
