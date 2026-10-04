@@ -549,45 +549,52 @@
       return lines;
     }
 
-    // Fetch GTT alerts RSS and match against our lines
+    // Fetch alerts from our worker API (which scrapes the GTT palina pages directly)
+    // This catches local/temporary deviations that the general RSS feed misses.
     async function fetchAlerts() {
       try {
-        const rssUrl = 'https://www.gtt.to.it/cms/avvisi-e-informazioni-di-servizio?format=feed&type=rss';
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
-        const res = await fetch(proxyUrl);
-        if (!res.ok) return;
-        const xml = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(xml, 'text/xml');
-        const items = doc.querySelectorAll('item');
-        const ourLines = getAllLines();
-        const alerts = {};
-
-        items.forEach(item => {
-          const title = item.querySelector('title')?.textContent || '';
-          const link = item.querySelector('link')?.textContent || '';
-          // Match line numbers in title (e.g. "linea 15", "linee 33 – 42", just "15" near context)
-          const titleUpper = title.toUpperCase();
-          for (const line of ourLines) {
-            // Match the line number as a word boundary
-            const lineNum = line.replace(/\s+/g, '').toUpperCase();
-            const patterns = [
-              new RegExp(`\\b${lineNum}\\b`, 'i'),
-              new RegExp(`\\b${line.replace(/\s+/g, '\\s*')}\\b`, 'i'),
-            ];
-            if (patterns.some(p => p.test(title))) {
-              if (!alerts[line]) alerts[line] = [];
-              // Avoid duplicates
-              if (!alerts[line].some(a => a.link === link)) {
-                alerts[line].push({ title, link });
-              }
-            }
+        const codes = new Set();
+        for (const sec of sections) {
+          for (const stop of sec.stops) {
+            if (stop.sources) stop.sources.forEach(s => codes.add(s.code));
+            else codes.add(stop.code);
           }
-        });
+        }
+        
+        const alerts = {};
+        
+        await Promise.all(Array.from(codes).map(async code => {
+          try {
+            const res = await fetch(`${API_BASE}/?stop=${code}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            data.forEach(item => {
+              if (item.line.toLowerCase().includes('deviat')) {
+                const match = item.line.match(/^([A-Z0-9\+]+)\s+(deviat.*)$/i);
+                if (match) {
+                  const lineNum = match[1];
+                  const lineKey = normalizeLine(lineNum);
+                  const text = match[2].trim();
+                  
+                  if (!alerts[lineKey]) alerts[lineKey] = [];
+                  
+                  const title = `Linea ${lineNum} ${text}`;
+                  if (!alerts[lineKey].some(a => a.title === title)) {
+                    alerts[lineKey].push({ 
+                      title, 
+                      link: `https://www.gtt.to.it/cms/percorari/arrivi?palina=${code}` 
+                    });
+                  }
+                }
+              }
+            });
+          } catch(e) {}
+        }));
 
         lineAlerts = alerts;
       } catch (e) {
-        console.warn('Failed to fetch GTT alerts:', e);
+        console.warn('Failed to fetch alerts:', e);
       }
     }
 
