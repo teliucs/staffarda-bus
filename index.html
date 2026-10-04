@@ -263,17 +263,16 @@
   .line-alert-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 6px;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     border-radius: 6px;
     background: rgba(255,183,77,0.15);
     border: 1px solid rgba(255,183,77,0.3);
     color: #ffb74d;
-    font-size: 0.65rem;
-    font-weight: 700;
+    font-size: 0.8rem;
     text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-right: 2px;
+    margin-right: 4px;
   }
 
   .line-alert-badge:hover {
@@ -709,7 +708,7 @@
         let alertHtml = '';
         if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
           const a = lineAlerts[lineKey][0];
-          alertHtml = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠ Avviso</a>`;
+          alertHtml = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠</a>`;
         }
 
         return `
@@ -789,7 +788,7 @@
             const container = row.querySelector('.row-alert-container');
             if (container && !container.innerHTML) {
               const a = lineAlerts[lineKey][0];
-              container.innerHTML = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠ Avviso</a>`;
+              container.innerHTML = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠</a>`;
             }
           }
         });
