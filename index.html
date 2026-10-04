@@ -204,11 +204,21 @@
   }
 
   .live-times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
     color: var(--live);
     line-height: 1.3;
     font-weight: 600;
     letter-spacing: -0.01em;
     font-size: 0.82rem;
+  }
+
+  .time-slot {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
   }
 
   .live-times strong {
@@ -519,6 +529,12 @@
               { code: '3350', show: ['56'] },
             ]},
           { name: 'Valentino Casa', code: '610', show: ['16 CD', '9'] },
+          { name: 'Vittorio Veneto', sources: [
+              { code: '563', show: ['15'] },
+              { code: '604', show: ['16 CD'] },
+              { code: '478', show: ['55'] },
+              { code: '479', show: ['56'] }
+            ]},
         ],
       },
       {
@@ -701,9 +717,10 @@
           const isRealLive = s.realtime && i < 2;
           const dot = isRealLive ? '<span class="live-dot" title="Live"></span>' : '';
           const label = `${dot}${s.time}`;
-          return i === 0 ? `<strong>${label}</strong>` : label;
+          const formatted = i === 0 ? `<strong>${label}</strong>` : label;
+          return `<span class="time-slot">${formatted}</span>`;
         });
-        const timesHtml = `<span class="live-times">${parts.join(' • ')}</span>`;
+        const timesHtml = `<div class="live-times">${parts.join('')}</div>`;
 
         let alertHtml = '';
         if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
