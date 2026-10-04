@@ -186,14 +186,14 @@
 
   .live-row {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
   }
 
   .live-line {
-    min-width: 40px;
-    padding: 4px 8px;
+    flex: 0 0 54px;
+    width: 54px;
+    padding: 4px 0;
     border-radius: 10px;
     background: rgba(90,169,255,0.14);
     border: 1px solid rgba(90,169,255,0.16);
@@ -201,6 +201,11 @@
     font-size: 0.72rem;
     font-weight: 800;
     text-align: center;
+  }
+
+  .row-alert-container {
+    margin-left: auto;
+    display: flex;
   }
 
   .live-times {
@@ -282,7 +287,7 @@
     color: #ffb74d;
     font-size: 0.8rem;
     text-decoration: none;
-    margin-right: 4px;
+    margin: 0;
   }
 
   .line-alert-badge:hover {
@@ -731,8 +736,8 @@
         return `
           <div class="live-row" data-line="${lineKey}">
             <span class="live-line">${item.line}</span>
-            <span class="row-alert-container">${alertHtml}</span>
             ${timesHtml}
+            <span class="row-alert-container">${alertHtml}</span>
           </div>
         `;
       }).join('');
