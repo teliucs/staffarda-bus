@@ -260,21 +260,24 @@
     padding-top: 2px;
   }
 
-  .stop-alert {
-    margin-top: 6px;
-    padding: 5px 10px;
-    border-radius: 10px;
-    background: rgba(255,183,77,0.12);
-    border: 1px solid rgba(255,183,77,0.2);
-    color: #ffd080;
-    font-size: 0.76rem;
-    font-weight: 600;
-    line-height: 1.3;
+  .line-alert-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255,183,77,0.15);
+    border: 1px solid rgba(255,183,77,0.3);
+    color: #ffb74d;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-right: 2px;
   }
 
-  .stop-alert a {
-    color: #ffb74d;
-    text-decoration: underline;
+  .line-alert-badge:hover {
+    background: rgba(255,183,77,0.25);
   }
 
   .hint {
@@ -692,9 +695,9 @@
       }
 
       const rows = filtered.map(item => {
+        const lineKey = normalizeLine(item.line);
         const slots = item.times.slice(0, 4);
         const parts = slots.map((s, i) => {
-          // GTT Pirate API over-reports realtime for buses far in the future.
           // Limit the realtime indicator to only the first 2 upcoming buses per line.
           const isRealLive = s.realtime && i < 2;
           const dot = isRealLive ? '<span class="live-dot" title="Live"></span>' : '';
@@ -703,9 +706,16 @@
         });
         const timesHtml = `<span class="live-times">${parts.join(' • ')}</span>`;
 
+        let alertHtml = '';
+        if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
+          const a = lineAlerts[lineKey][0];
+          alertHtml = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠ Avviso</a>`;
+        }
+
         return `
-          <div class="live-row">
+          <div class="live-row" data-line="${lineKey}">
             <span class="live-line">${item.line}</span>
+            <span class="row-alert-container">${alertHtml}</span>
             ${timesHtml}
           </div>
         `;
@@ -715,16 +725,12 @@
     }
 
     async function fetchStop(code) {
-      // Try Pirate API first (has realtime flag)
       try {
         const res = await fetch(`${PIRATE_API}?stop=${encodeURIComponent(code)}`);
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
         return transformPirateData(data);
-      } catch (e) {
-        console.warn(`Pirate API fallback for stop ${code}:`, e);
-      }
-      // Fallback to our API
+      } catch (e) {}
       const res = await fetch(`${API_BASE}/?stop=${encodeURIComponent(code)}`);
       const data = await res.json();
       return transformFallbackData(data);
@@ -733,7 +739,6 @@
     async function loadArrivals(stop, liveEl) {
       liveEl.className = 'stop-live loading';
       liveEl.textContent = 'Caricamento orari...';
-
       try {
         if (stop.sources) {
           const fetches = stop.sources.map(async (src) => {
@@ -750,7 +755,6 @@
           liveEl.outerHTML = formatLiveRows(stop, arrivals);
         }
       } catch (error) {
-        console.error('Errore arrivi:', error);
         liveEl.className = 'stop-live error';
         liveEl.textContent = 'Orari non disponibili';
       }
@@ -758,19 +762,15 @@
 
     function buildCard(stop) {
       const button = document.createElement('button');
-      const codes = stop.sources
-        ? stop.sources.map(s => s.code)
-        : [stop.code];
+      const codes = stop.sources ? stop.sources.map(s => s.code) : [stop.code];
       const codeLabel = codes.map(c => `Fermata ${c}`).join(' · ');
 
       button.className = 'stop';
       button.type = 'button';
-      button.dataset.stopId = stop.code || codes[0]; // For alert injection
       button.innerHTML = `
         <div class="stop-main">
           <span class="stop-name">${stop.name}</span>
           <span class="stop-code">${codeLabel}</span>
-          <div class="alert-container"></div>
           <span class="stop-live loading">Caricamento orari...</span>
         </div>
         <div class="chevron">›</div>
@@ -780,27 +780,21 @@
       return button;
     }
 
-    async function injectAlerts() {
-      await fetchAlerts();
-      for (const sec of sections) {
-        for (const stop of sec.stops) {
-          const alerts = getStopAlerts(stop);
-          if (!alerts.length) continue;
-          
-          const code = stop.code || stop.sources[0].code;
-          const card = document.querySelector(`.stop[data-stop-id="${code}"]`);
-          if (card) {
-            const container = card.querySelector('.alert-container');
-            container.innerHTML = alerts.map(a =>
-              `<div class="stop-alert">⚠ <a href="${a.link}" target="_blank" onclick="event.stopPropagation()">${a.title}</a></div>`
-            ).join('');
-          }
-        }
-      }
-    }
-
     async function renderStops() {
-      // Remember which sections are open
+      // Fetch alerts without blocking
+      fetchAlerts().then(() => {
+        document.querySelectorAll('.live-row').forEach(row => {
+          const lineKey = row.dataset.line;
+          if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
+            const container = row.querySelector('.row-alert-container');
+            if (container && !container.innerHTML) {
+              const a = lineAlerts[lineKey][0];
+              container.innerHTML = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠ Avviso</a>`;
+            }
+          }
+        });
+      });
+
       const openState = {};
       sectionsEl.querySelectorAll('.section').forEach(det => {
         openState[det.dataset.id] = det.open;
@@ -813,7 +807,6 @@
         const details = document.createElement('details');
         details.className = `section ${section.id}`;
         details.dataset.id = section.id;
-        // Default open, or preserve previous state
         details.open = openState[section.id] !== undefined ? openState[section.id] : true;
 
         const summary = document.createElement('summary');
@@ -831,15 +824,11 @@
         details.appendChild(grid);
         sectionsEl.appendChild(details);
 
-        // Queue load tasks
         const liveEls = [...grid.querySelectorAll('.stop-live')];
         section.stops.forEach((stop, index) => {
           allLoadTasks.push(loadArrivals(stop, liveEls[index]));
         });
       }
-
-      // Fire and forget alerts injection (non-blocking)
-      injectAlerts();
 
       await Promise.all(allLoadTasks);
       setLastUpdate();
