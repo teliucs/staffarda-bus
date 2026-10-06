@@ -4,12 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Staffarda Bus</title>
-<link rel="icon" href="logo/icon.png" type="image/png" sizes="512x512">
-<link rel="shortcut icon" href="logo/favicon.ico" type="image/x-icon">
-<link rel="apple-touch-icon" href="logo/icon.png">
+<meta name="description" content="Arrivi live GTT per le fermate che usi davvero">
+<link rel="icon" href="logo/favicon.ico" sizes="any">
+<link rel="icon" href="logo/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1220">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Staffarda Bus">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
@@ -496,7 +499,7 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
-        <img src="logo/icon-192.png" alt="Staffarda Bus" width="42" height="42">
+        <img src="logo/icon-96.png" alt="Staffarda Bus" width="42" height="42">
         <div class="brand-copy">
           <h1>Staffarda Bus</h1>
           <p class="subtitle">Arrivi live per le fermate che usi davvero</p>
@@ -528,6 +531,11 @@
     const DEDUP_WINDOW_MS = 3 * 60 * 1000;
     // Un passaggio resta visibile fino a 1 minuto dopo l'orario previsto
     const DEPARTED_GRACE_MS = 60 * 1000;
+    const DATA_CACHE_KEY = 'staffarda-bus:last-data';
+    // Oltre questa età i dati salvati non servono più: i bus sono già passati
+    const DATA_CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+    // Prima di quest'ora si apre "Andata", dopo "Ritorno"
+    const RETURN_FROM_HOUR = 14;
 
     // Una fermata può avere un solo `code` + `show`, oppure più `sources`
     // (fermata "logica" composta da più paline)
@@ -601,6 +609,7 @@
     let toastTimer;
     let refreshing = false;
     let lastRefresh = 0;
+    let dataSavedAt = null;
 
     function el(tag, className, text) {
       const node = document.createElement(tag);
@@ -860,10 +869,17 @@
       return card;
     }
 
+    function isSectionOpenByDefault(id) {
+      const isReturnTime = new Date().getHours() >= RETURN_FROM_HOUR;
+      if (id === 'andata') return !isReturnTime;
+      if (id === 'ritorno') return isReturnTime;
+      return true;
+    }
+
     function buildSections() {
       for (const section of sections) {
         const details = el('details', `section ${section.id}`);
-        details.open = true;
+        details.open = isSectionOpenByDefault(section.id);
 
         const summary = el('summary');
         summary.append(el('span', 'section-title', section.label));
@@ -877,8 +893,45 @@
     }
 
     function setLastUpdate(failedCount) {
+      if (failedCount === allStops.length) {
+        lastUpdate.textContent = dataSavedAt
+          ? `Offline · dati delle ${formatClock(dataSavedAt)}`
+          : 'Offline · orari non disponibili';
+        return;
+      }
       const suffix = failedCount ? ' · alcune fermate non aggiornate' : '';
       lastUpdate.textContent = `Aggiornato alle ${formatClock(Date.now())}${suffix}`;
+    }
+
+    // Ultimi dati scaricati, per mostrare subito qualcosa all'apertura
+    // (anche offline) mentre arrivano quelli nuovi.
+    function saveDataCache() {
+      const stops = {};
+      for (const stop of allStops) {
+        const state = stopState.get(stop);
+        if (state?.status === 'ready') stops[stop.name] = state.rows;
+      }
+      dataSavedAt = Date.now();
+      try {
+        localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({ savedAt: dataSavedAt, stops, alerts: lineAlerts }));
+      } catch (e) {}
+    }
+
+    function restoreDataCache() {
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem(DATA_CACHE_KEY));
+      } catch (e) {
+        return;
+      }
+      if (!data || Date.now() - data.savedAt > DATA_CACHE_MAX_AGE_MS) return;
+      for (const stop of allStops) {
+        const rows = data.stops?.[stop.name];
+        if (rows) stopState.set(stop, { status: 'ready', rows });
+      }
+      lineAlerts = data.alerts || {};
+      dataSavedAt = data.savedAt;
+      lastUpdate.textContent = `Dati delle ${formatClock(dataSavedAt)} · aggiornamento...`;
     }
 
     async function refresh() {
@@ -895,7 +948,9 @@
         });
         const results = await Promise.all(allStops.map(stop => loadStop(stop, worker)));
         await alertsTask;
-        setLastUpdate(results.filter(ok => !ok).length);
+        const failedCount = results.filter(ok => !ok).length;
+        if (failedCount < allStops.length) saveDataCache();
+        setLastUpdate(failedCount);
       } finally {
         lastRefresh = Date.now();
         refreshing = false;
@@ -922,9 +977,14 @@
       if (document.visibilityState === 'visible') tick();
     });
 
+    restoreDataCache();
     buildSections();
     refresh();
     setInterval(tick, TICK_MS);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service worker non registrato:', e));
+    }
   </script>
 </body>
 </html>
