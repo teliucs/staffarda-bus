@@ -8,7 +8,7 @@ The project was built to quickly check the next buses for the stops I actually u
 
 * 🚍 Live upcoming bus arrivals, with a green dot on real-time (GPS) times
 * 🔄 Auto-refresh every ~45 seconds and when you come back to the app
-* ⚠️ Line deviation alerts, linked to the GTT stop page
+* ⚠️ Deviations view: full GTT notices, skipped stops and a map of the stretch not served
 * 🗂️ Stops grouped into collapsible sections (Andata, Ritorno, Misc)
 * 📱 Installable PWA: works offline and shows the last downloaded times
 * ⚡ Single static file, no dependencies, no build step
@@ -53,6 +53,29 @@ Example response:
 ```
 
 Deviation alerts come back as entries whose `line` starts with the line number followed by the deviation text (e.g. `"15 deviata ..."`).
+
+## Deviations Worker
+
+The **Deviazioni** tab uses a second Cloudflare Worker, included in [`worker/`](worker/).
+For each line it reads the GTT line page and GTT's internal deviation service and returns:
+
+* the full text of the line's notices (dates, times and the streets of the detour)
+* when GTT publishes it, where the deviation starts and ends, the skipped stops and the
+  geometry of the **stretch of the normal route that is not served** (GTT does not publish
+  the detour path itself: that is only described in the notice text)
+
+```
+GET https://staffarda-bus-deviazioni.lorenzo-tegliucci.workers.dev/deviazioni?linea=55
+```
+
+Responses are cached for 5 minutes. To deploy changes:
+
+```
+cd worker
+npx wrangler deploy
+```
+
+These GTT endpoints are undocumented and may change without notice.
 
 ## PWA and offline
 

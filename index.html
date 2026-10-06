@@ -29,6 +29,9 @@
     --accent-soft: rgba(90,169,255,0.16);
     --live: #d9e8ff;
     --error: #ffb4b4;
+    --warn: #ffb74d;
+    --warn-rgb: 255,183,77;
+    --danger: #ff7a7a;
     --radius: 22px;
   }
 
@@ -46,6 +49,9 @@
   }
 
   body {
+    /* Lo sfondo sfumato copre sempre tutto lo schermo, anche con poco contenuto */
+    min-height: 100vh;
+    min-height: 100dvh;
     padding: max(18px, env(safe-area-inset-top)) 14px max(26px, env(safe-area-inset-bottom));
   }
 
@@ -128,6 +134,49 @@
 
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 10px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .tab[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px rgba(90,169,255,0.25);
+  }
+
+  .tab-count {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(var(--warn-rgb), 0.18);
+    color: var(--warn);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
   }
 
   .status-row {
@@ -344,6 +393,188 @@
     background: rgba(255,183,77,0.25);
   }
 
+  .stop-live .line-alert-badge {
+    cursor: pointer;
+  }
+
+  /* Vista deviazioni */
+  .dev-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .dev-card {
+    border: 1px solid var(--border);
+    border-left: 3px solid rgba(var(--warn-rgb), 0.6);
+    background: linear-gradient(180deg, var(--card), rgba(18,29,47,0.95));
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: calc(12px + env(safe-area-inset-top));
+    transition: box-shadow 0.4s ease;
+  }
+
+  .dev-card.is-focused {
+    box-shadow: var(--shadow), 0 0 0 2px rgba(var(--warn-rgb), 0.6);
+  }
+
+  .dev-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dev-line {
+    flex: 0 0 auto;
+    min-width: 54px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    background: rgba(var(--warn-rgb), 0.16);
+    border: 1px solid rgba(var(--warn-rgb), 0.3);
+    color: #fff0d4;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .dev-head-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .dev-alert + .dev-alert,
+  .dev-route {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .dev-alert-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--warn);
+  }
+
+  .dev-date {
+    margin: 2px 0 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .dev-text {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--live);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .dev-route-dir {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .dev-route-span {
+    margin: 4px 0 0;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .dev-skipped {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dev-skipped li {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255,122,122,0.12);
+    border: 1px solid rgba(255,122,122,0.25);
+    color: #ffd0d0;
+    font-size: 0.78rem;
+  }
+
+  .dev-note {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .dev-map {
+    height: 260px;
+    margin-top: 12px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #0d1626;
+  }
+
+  .dev-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .dev-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 4px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: middle;
+    background: var(--swatch);
+  }
+
+  .dev-gtt-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  .dev-gtt-link:hover {
+    text-decoration: underline;
+  }
+
+  .dev-empty,
+  .dev-summary {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .dev-empty.error {
+    color: var(--error);
+  }
+
+  /* Sfondo scuro finché le tiles non arrivano (Leaflet di default usa grigio chiaro) */
+  .dev-map.leaflet-container {
+    background: #0d1626;
+    font: inherit;
+  }
+
   .hint {
     margin: 16px auto 0;
     padding: 14px 16px;
@@ -508,13 +739,28 @@
       <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna orari"><span class="refresh-icon" aria-hidden="true">↻</span></button>
     </header>
 
-    <div class="status-row">
-      <span id="lastUpdate">Aggiornamento iniziale...</span>
-    </div>
+    <nav class="tabs" aria-label="Sezioni">
+      <a class="tab" href="#orari" data-view="orari">Orari</a>
+      <a class="tab" href="#deviazioni" data-view="deviazioni">Deviazioni <span class="tab-count" id="devCount" hidden></span></a>
+    </nav>
 
-    <div id="sections"></div>
+    <section id="viewOrari">
+      <div class="status-row">
+        <span id="lastUpdate">Aggiornamento iniziale...</span>
+      </div>
 
-    <div class="hint">Nel dubbio non andare mai al Poli.</div>
+      <div id="sections"></div>
+
+      <div class="hint">Nel dubbio non andare mai al Poli.</div>
+    </section>
+
+    <section id="viewDeviazioni" hidden>
+      <div class="status-row">
+        <span id="devStatus"></span>
+      </div>
+
+      <div id="devList" class="dev-list"></div>
+    </section>
   </main>
 
   <div id="toast" class="toast" aria-live="polite"></div>
@@ -523,6 +769,10 @@
     const API_BASE = "https://staffarda-bus-api.lorenzo-tegliucci.workers.dev";
     const PIRATE_API = "https://gpa.madbob.org/query.php";
     const GTT_STOP_URL = "https://www.gtt.to.it/cms/percorari/arrivi?palina=";
+    const GTT_LINE_URL = "https://www.gtt.to.it/cms/percorari/urbano?view=percorsi&bacino=U&Regol=GE&linea=";
+    const DEVIATIONS_API = "https://staffarda-bus-deviazioni.lorenzo-tegliucci.workers.dev";
+    const LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    const LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
 
     const FETCH_TIMEOUT_MS = 5000;
     const AUTO_REFRESH_MS = 45 * 1000;
@@ -531,6 +781,9 @@
     const DEDUP_WINDOW_MS = 3 * 60 * 1000;
     // Un passaggio resta visibile fino a 1 minuto dopo l'orario previsto
     const DEPARTED_GRACE_MS = 60 * 1000;
+    // Il Worker deve scaricare la pagina della linea da GTT: serve più tempo
+    const DEVIATIONS_TIMEOUT_MS = 15 * 1000;
+    const DEVIATIONS_MAX_AGE_MS = 5 * 60 * 1000;
     const DATA_CACHE_KEY = 'staffarda-bus:last-data';
     // Oltre questa età i dati salvati non servono più: i bus sono già passati
     const DATA_CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
@@ -599,6 +852,11 @@
     const toast = document.getElementById('toast');
     const refreshBtn = document.getElementById('refreshBtn');
     const lastUpdate = document.getElementById('lastUpdate');
+    const viewOrari = document.getElementById('viewOrari');
+    const viewDeviazioni = document.getElementById('viewDeviazioni');
+    const devList = document.getElementById('devList');
+    const devStatus = document.getElementById('devStatus');
+    const devCount = document.getElementById('devCount');
 
     // stop -> { status: 'loading' | 'ready' | 'error', rows: [{ line, times: [{ ts, realtime }] }] }
     const stopState = new Map();
@@ -607,6 +865,10 @@
     let toastTimer;
     let refreshing = false;
     let lastRefresh = 0;
+    let deviationsLoadedAt = 0;
+    let deviationsLoading = null;
+    let deviationMaps = [];
+    let leafletPromise = null;
     let dataSavedAt = null;
 
     function el(tag, className, text) {
@@ -697,9 +959,9 @@
       }));
     }
 
-    async function fetchJson(url) {
+    async function fetchJson(url, timeoutMs = FETCH_TIMEOUT_MS) {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -775,8 +1037,10 @@
       return ok;
     }
 
-    function buildAlertBadge(alert) {
-      const badge = externalLink('line-alert-badge', alert.link, '⚠');
+    // Il badge apre la linea nella vista Deviazioni
+    function buildAlertBadge(alert, lineKey) {
+      const badge = el('a', 'line-alert-badge', '⚠');
+      badge.href = `#deviazioni-${lineKey}`;
       badge.title = alert.title;
       badge.setAttribute('aria-label', alert.title);
       return badge;
@@ -800,8 +1064,9 @@
       rowEl.append(timesEl);
 
       const alertSlot = el('span', 'row-alert-container');
-      const alert = lineAlerts[normalizeLine(row.line)]?.[0];
-      if (alert) alertSlot.append(buildAlertBadge(alert));
+      const lineKey = normalizeLine(row.line);
+      const alert = lineAlerts[lineKey]?.[0];
+      if (alert) alertSlot.append(buildAlertBadge(alert, lineKey));
       rowEl.append(alertSlot);
 
       return rowEl;
@@ -836,6 +1101,7 @@
     function renderAll() {
       const now = Date.now();
       allStops.forEach(stop => renderLive(stop, now));
+      updateDeviationCount();
     }
 
     function buildCard(stop) {
@@ -921,6 +1187,7 @@
         if (rows) stopState.set(stop, { status: 'ready', rows });
       }
       lineAlerts = data.alerts || {};
+      updateDeviationCount();
       dataSavedAt = data.savedAt;
       lastUpdate.textContent = `Dati delle ${formatClock(dataSavedAt)} · aggiornamento...`;
     }
@@ -950,6 +1217,245 @@
       }
     }
 
+    // --- Vista deviazioni ----------------------------------------------------
+
+    // Linee da controllare: tutte quelle mostrate nelle card, una volta sola
+    const allLines = [...new Map(allStops
+      .flatMap(stop => stop.sources.flatMap(src => src.show))
+      .map(label => [normalizeLine(label), { key: normalizeLine(label), label }])).values()];
+
+    function updateDeviationCount() {
+      const count = allLines.filter(line => lineAlerts[line.key]?.length).length;
+      devCount.hidden = !count;
+      devCount.textContent = count;
+    }
+
+    function loadLeaflet() {
+      if (!leafletPromise) {
+        leafletPromise = new Promise((resolve, reject) => {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = LEAFLET_CSS;
+          document.head.append(css);
+          const script = document.createElement('script');
+          script.src = LEAFLET_JS;
+          script.onload = () => resolve(window.L);
+          script.onerror = () => {
+            leafletPromise = null;
+            reject(new Error('Leaflet non caricato'));
+          };
+          document.head.append(script);
+        });
+      }
+      return leafletPromise;
+    }
+
+    function loadDeviations() {
+      if (!deviationsLoading) {
+        deviationsLoading = (async () => {
+          if (!deviationsLoadedAt) {
+            devStatus.textContent = 'Controllo le tue linee...';
+            devList.replaceChildren(el('div', 'dev-empty', 'Caricamento deviazioni...'));
+          }
+          const results = await Promise.all(allLines.map(async line => {
+            try {
+              const data = await fetchJson(`${DEVIATIONS_API}/deviazioni?linea=${encodeURIComponent(line.key)}`, DEVIATIONS_TIMEOUT_MS);
+              return { ...line, data };
+            } catch (e) {
+              return { ...line, error: true };
+            }
+          }));
+          deviationsLoadedAt = Date.now();
+          await renderDeviations(results);
+        })().finally(() => {
+          deviationsLoading = null;
+        });
+      }
+      return deviationsLoading;
+    }
+
+    function buildDeviationRoute(line, deviation) {
+      const block = el('div', 'dev-route');
+      if (deviation.direction) block.append(el('p', 'dev-route-dir', `Direzione ${deviation.direction}`));
+
+      const span = el('p', 'dev-route-span');
+      span.append('Deviata tra ', el('strong', null, deviation.from.name), ' e ', el('strong', null, deviation.to.name));
+      block.append(span);
+
+      if (deviation.skipped === null) {
+        block.append(el('p', 'dev-note', 'Fermate saltate non disponibili.'));
+      } else if (!deviation.skipped.length) {
+        block.append(el('p', 'dev-note', 'Nessuna fermata saltata.'));
+      } else {
+        block.append(el('p', 'dev-note', `Fermate non servite (${deviation.skipped.length}):`));
+        const list = el('ul', 'dev-skipped');
+        deviation.skipped.forEach(stop => list.append(el('li', null, `${stop.name} · ${stop.id}`)));
+        block.append(list);
+      }
+
+      if (deviation.paths.length) {
+        const map = el('div', 'dev-map');
+        const legend = el('div', 'dev-legend');
+        [['Percorso normale', '#7f8ea8'], ['Tratto non percorso', 'var(--danger)'], ['Inizio e fine deviazione', '#5ee0c0']]
+          .forEach(([label, color]) => {
+            const item = el('span', null, label);
+            item.style.setProperty('--swatch', color);
+            legend.append(item);
+          });
+        block.append(map, legend);
+        const route = line.data.routes.find(r => r.id === deviation.route);
+        block.mapTask = () => drawDeviationMap(map, route, deviation);
+      }
+      return block;
+    }
+
+    async function drawDeviationMap(container, route, deviation) {
+      let L;
+      try {
+        L = await loadLeaflet();
+      } catch (e) {
+        container.replaceWith(el('p', 'dev-note', 'Mappa non disponibile.'));
+        return;
+      }
+      const map = L.map(container, {
+        scrollWheelZoom: false,
+        dragging: !L.Browser.mobile,
+        attributionControl: true,
+      });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      }).addTo(map);
+
+      if (route?.path.length) {
+        L.polyline(route.path, { color: '#7f8ea8', weight: 4, opacity: 0.55 }).addTo(map);
+      }
+      // GTT pubblica il tratto del percorso normale che non viene fatto,
+      // non il percorso alternativo (quello è solo nel testo dell'avviso)
+      const skippedStretch = L.polyline(deviation.paths, { color: '#ff7a7a', weight: 5, opacity: 0.95, dashArray: '8 6' }).addTo(map);
+
+      const bounds = skippedStretch.getBounds();
+      for (const stop of deviation.skipped || []) {
+        L.circleMarker([stop.lat, stop.lng], { radius: 5, color: '#ff7a7a', weight: 2, fillColor: '#ff7a7a', fillOpacity: 0.6 })
+          .bindTooltip(`Saltata: ${stop.name} · ${stop.id}`)
+          .addTo(map);
+        bounds.extend([stop.lat, stop.lng]);
+      }
+      const ends = [[deviation.from, 'Inizio deviazione'], [deviation.to, 'Fine deviazione']];
+      for (const [end, label] of ends) {
+        const stop = route?.stops.find(s => s.id === end.id);
+        if (!stop) continue;
+        L.circleMarker([stop.lat, stop.lng], { radius: 7, color: '#5ee0c0', weight: 3, fillColor: '#0b1220', fillOpacity: 1 })
+          .bindTooltip(`${label}: ${stop.name} · ${stop.id}`)
+          .addTo(map);
+        bounds.extend([stop.lat, stop.lng]);
+      }
+      map.fitBounds(bounds, { padding: [20, 20] });
+      map.detourBounds = bounds;
+      deviationMaps.push(map);
+    }
+
+    function buildDeviationCard(line) {
+      const { alerts, deviations } = line.data;
+      const card = el('article', 'dev-card');
+      card.id = `dev-${line.key}`;
+
+      const head = el('div', 'dev-head');
+      head.append(el('span', 'dev-line', line.label));
+      head.append(el('h2', 'dev-head-title', deviations.length ? 'Linea deviata' : 'Avvisi sulla linea'));
+      card.append(head);
+
+      for (const alert of alerts) {
+        const block = el('div', 'dev-alert');
+        block.append(el('h3', 'dev-alert-title', alert.title));
+        if (alert.date) block.append(el('p', 'dev-date', `Pubblicato il ${alert.date}`));
+        if (alert.text) block.append(el('p', 'dev-text', alert.text));
+        card.append(block);
+      }
+
+      const mapTasks = [];
+      for (const deviation of deviations) {
+        const block = buildDeviationRoute(line, deviation);
+        if (block.mapTask) mapTasks.push(block.mapTask);
+        card.append(block);
+      }
+
+      card.append(externalLink('dev-gtt-link', GTT_LINE_URL + encodeURIComponent(line.key), 'Apri la linea su GTT ›'));
+      card.mapTasks = mapTasks;
+      return card;
+    }
+
+    async function renderDeviations(results) {
+      deviationMaps.forEach(map => map.remove());
+      deviationMaps = [];
+
+      // Prima le linee con un tratto deviato, poi quelle con soli avvisi
+      const withNews = results
+        .filter(line => line.data && (line.data.alerts.length || line.data.deviations.length))
+        .sort((a, b) => Number(Boolean(b.data.deviations.length)) - Number(Boolean(a.data.deviations.length)));
+      const quiet = results.filter(line => line.data && !withNews.includes(line));
+      const failed = results.filter(line => line.error);
+
+      const nodes = withNews.map(buildDeviationCard);
+      if (!withNews.length && !failed.length) {
+        nodes.push(el('div', 'dev-empty', 'Nessuna deviazione o avviso sulle tue linee.'));
+      }
+      if (quiet.length) {
+        nodes.push(el('div', 'dev-summary', `Nessun avviso: ${quiet.map(line => line.label).join(' · ')}`));
+      }
+      if (failed.length) {
+        nodes.push(el('div', 'dev-empty error', `Non disponibili: ${failed.map(line => line.label).join(' · ')}`));
+      }
+      devList.replaceChildren(...nodes);
+
+      devStatus.textContent = failed.length === results.length
+        ? 'Deviazioni non disponibili'
+        : `Aggiornato alle ${formatClock(deviationsLoadedAt)}`;
+
+      // Le mappe vanno disegnate a contenitore visibile, altrimenti Leaflet sbaglia le misure
+      await Promise.all(nodes.flatMap(node => node.mapTasks || []).map(task => task()));
+    }
+
+    function focusDeviation(lineKey) {
+      if (!lineKey) return;
+      const card = document.getElementById(`dev-${lineKey}`);
+      if (!card) return;
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      card.classList.add('is-focused');
+      setTimeout(() => card.classList.remove('is-focused'), 1600);
+    }
+
+    async function openDeviations(lineKey) {
+      if (Date.now() - deviationsLoadedAt > DEVIATIONS_MAX_AGE_MS) {
+        await loadDeviations();
+      } else {
+        deviationMaps.forEach(map => {
+          map.invalidateSize();
+          map.fitBounds(map.detourBounds, { padding: [20, 20] });
+        });
+      }
+      focusDeviation(lineKey);
+    }
+
+    function currentView() {
+      return location.hash.startsWith('#deviazioni') ? 'deviazioni' : 'orari';
+    }
+
+    // #orari, #deviazioni oppure #deviazioni-15 (apre e scorre fino alla linea)
+    function showView() {
+      const view = currentView();
+      viewOrari.hidden = view !== 'orari';
+      viewDeviazioni.hidden = view !== 'deviazioni';
+      document.querySelectorAll('.tab').forEach(tab => {
+        if (tab.dataset.view === view) tab.setAttribute('aria-current', 'page');
+        else tab.removeAttribute('aria-current');
+      });
+      if (view === 'deviazioni') {
+        window.scrollTo(0, 0);
+        openDeviations(location.hash.slice('#deviazioni-'.length) || null);
+      }
+    }
+
     // Nasconde in locale i passaggi già avvenuti e ricarica i dati
     // solo se la pagina è visibile e sono vecchi.
     function tick() {
@@ -960,9 +1466,16 @@
     }
 
     refreshBtn.addEventListener('click', () => {
+      if (currentView() === 'deviazioni') {
+        showToast('Aggiorno le deviazioni');
+        loadDeviations();
+        return;
+      }
       showToast('Aggiorno gli orari');
       refresh();
     });
+
+    window.addEventListener('hashchange', showView);
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') tick();
@@ -970,6 +1483,7 @@
 
     restoreDataCache();
     buildSections();
+    showView();
     refresh();
     setInterval(tick, TICK_MS);
 
