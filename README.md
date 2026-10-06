@@ -103,9 +103,12 @@ Each stop has a name and one or more **GTT stop numbers (palina)**, each with th
 
 You can find stop numbers on the official GTT website.
 
-## Screenshot
+## Screenshots
 
-<img src="screenshots/app-preview.png" alt="Staffarda Bus mobile interface showing live GTT bus arrivals" width="420" />
+<p>
+  <img src="screenshots/app-preview.png" alt="Orari tab: live GTT arrivals grouped into Andata, Ritorno and Misc" width="420" />
+  <img src="screenshots/deviazioni-preview.png" alt="Deviazioni tab: full GTT notices, skipped stops and map of the unserved stretch" width="420" />
+</p>
 
 ## Notes
 
