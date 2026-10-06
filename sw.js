@@ -2,7 +2,7 @@
 // Le chiamate alle API (altri domini) non vengono intercettate: i dati
 // li gestisce la pagina, con la sua cache in localStorage.
 
-const CACHE = 'staffarda-bus-v1';
+const CACHE = 'staffarda-bus-v2';
 const SHELL = [
   './',
   'index.html',

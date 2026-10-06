@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sorgente delle icone: percorso a S (Staffarda) con i due capolinea -->
+  <rect width="512" height="512" fill="#0a0b1e"/>
+  <g id="mark">
+    <path d="M164 124 H300 A66 66 0 0 1 300 256 H212 A66 66 0 0 0 212 388 H348" fill="none" stroke="#ffd23f" stroke-width="48" stroke-linejoin="round"/>
+    <circle cx="164" cy="124" r="34" fill="#0a0b1e" stroke="#ffffff" stroke-width="18"/>
+    <circle cx="348" cy="388" r="34" fill="#0a0b1e" stroke="#ffffff" stroke-width="18"/>
+  </g>
+</svg>

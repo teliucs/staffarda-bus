@@ -2,14 +2,14 @@
   "id": "./",
   "name": "Staffarda Bus",
   "short_name": "Staffarda Bus",
-  "description": "Arrivi live GTT per le fermate che usi davvero",
+  "description": "Orari live e deviazioni GTT per le mie fermate",
   "lang": "it",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#0a0b1e",
+  "theme_color": "#0a0b1e",
   "icons": [
     {
       "src": "logo/icon-192.png",

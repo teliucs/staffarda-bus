@@ -6,12 +6,12 @@ The project was built to quickly check the next buses for the stops I actually u
 
 ## Features
 
-* 🚍 Live upcoming bus arrivals, with a green dot on real-time (GPS) times
-* 🔄 Auto-refresh every ~45 seconds and when you come back to the app
-* ⚠️ Deviations view: full GTT notices, skipped stops and a map of the stretch not served
-* 🗂️ Stops grouped into collapsible sections (Andata, Ritorno, Misc)
-* 📱 Installable PWA: works offline and shows the last downloaded times
-* ⚡ Single static file, no dependencies, no build step
+* Live upcoming bus arrivals, with a green dot on real-time (GPS) times
+* Auto-refresh every ~45 seconds and when you come back to the app
+* Deviations view: full GTT notices, skipped stops and a map of the stretch not served
+* Stops grouped into collapsible sections (Andata, Ritorno, Misc)
+* Installable PWA: works offline and shows the last downloaded times
+* Single static file, no dependencies, no build step
 
 ## How it works
 

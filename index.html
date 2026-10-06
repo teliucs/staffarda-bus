@@ -4,12 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Staffarda Bus</title>
-<meta name="description" content="Arrivi live GTT per le fermate che usi davvero">
+<meta name="description" content="Orari live e deviazioni GTT per le mie fermate">
 <link rel="icon" href="logo/favicon.ico" sizes="any">
 <link rel="icon" href="logo/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@500;700&display=swap">
+<meta name="theme-color" content="#0a0b1e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Staffarda Bus">
@@ -17,21 +20,28 @@
 
 <style>
   :root {
-    --bg: #0b1220;
-    --bg-2: #0f1b33;
-    --card: rgba(22, 34, 54, 0.88);
-    --card-hover: rgba(27, 43, 68, 0.96);
-    --text: #eef4ff;
-    --muted: #98a8c3;
-    --border: rgba(255,255,255,0.08);
-    --shadow: 0 14px 30px rgba(0,0,0,0.28);
-    --accent: #5aa9ff;
-    --accent-soft: rgba(90,169,255,0.16);
-    --live: #d9e8ff;
+    /* Palette "Notte elettrica": indaco profondo con accenti vivaci */
+    --bg: #0a0b1e;
+    --surface: #13153a;
+    --surface-hover: #181b47;
+    --surface-active: #22265c;
+    --text: #eef0ff;
+    --muted: #9ba1d0;
+    --border: #262a63;
+    --accent: #8f96ff;
+    --live: #dfe2ff;
     --error: #ffb4b4;
-    --warn: #ffb74d;
-    --warn-rgb: 255,183,77;
-    --radius: 22px;
+    --warn: #ffe14d;
+    --next: #ffe14d;
+    --display: #06071a;
+    --display-border: #262a63;
+    --display-text: #cfd3ff;
+    --badge-text: var(--bg);
+    --on-warn: var(--bg);
+    --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --radius: 12px;
+    --radius-sm: 5px;
   }
 
   * { box-sizing: border-box; }
@@ -41,16 +51,11 @@
     padding: 0;
     min-height: 100%;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background:
-      radial-gradient(circle at top, #17315d 0%, var(--bg) 38%),
-      linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    background: var(--bg);
     color: var(--text);
   }
 
   body {
-    /* Lo sfondo sfumato copre sempre tutto lo schermo, anche con poco contenuto */
-    min-height: 100vh;
-    min-height: 100dvh;
     padding: max(18px, env(safe-area-inset-top)) 14px max(26px, env(safe-area-inset-bottom));
   }
 
@@ -78,40 +83,30 @@
   .brand img {
     width: 42px;
     height: 42px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    border-radius: 10px;
     flex: 0 0 auto;
-  }
-
-  .brand-copy {
-    min-width: 0;
   }
 
   h1 {
     margin: 0;
-    font-size: 1.9rem;
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
     line-height: 1;
-    letter-spacing: -0.04em;
-  }
-
-  .subtitle {
-    margin: 5px 0 0;
-    color: var(--muted);
-    font-size: 0.92rem;
+    letter-spacing: -0.03em;
   }
 
   .refresh-btn {
     border: 1px solid var(--border);
-    background: rgba(255,255,255,0.05);
+    background: var(--surface);
     color: var(--text);
-    border-radius: 14px;
-    min-width: 46px;
-    height: 46px;
+    border-radius: 10px;
+    min-width: 44px;
+    height: 44px;
     display: grid;
     place-items: center;
     font-size: 1.05rem;
     cursor: pointer;
-    box-shadow: var(--shadow);
   }
 
   .refresh-btn:active {
@@ -140,21 +135,23 @@
     gap: 4px;
     padding: 4px;
     margin-bottom: 10px;
-    border-radius: 16px;
-    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius);
+    background: var(--surface);
     border: 1px solid var(--border);
   }
 
   .tab {
+    position: relative;
     flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 9px 12px;
-    border-radius: 12px;
+    border-radius: 8px;
     color: var(--muted);
-    font-size: 0.9rem;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
     font-weight: 700;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
@@ -162,17 +159,29 @@
   }
 
   .tab[aria-current="page"] {
-    background: var(--accent-soft);
+    background: var(--surface-active);
     color: var(--text);
-    box-shadow: inset 0 0 0 1px rgba(90,169,255,0.25);
+  }
+
+  /* Barretta gialla sotto la scheda attiva */
+  .tab[aria-current="page"]::after {
+    content: '';
+    position: absolute;
+    left: 36%;
+    right: 36%;
+    bottom: 4px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--next);
   }
 
   .tab-count {
     min-width: 20px;
     padding: 1px 6px;
-    border-radius: 999px;
-    background: rgba(var(--warn-rgb), 0.18);
-    color: var(--warn);
+    border-radius: var(--radius-sm);
+    background: var(--warn);
+    color: var(--on-warn);
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 800;
     text-align: center;
@@ -184,7 +193,8 @@
     align-items: center;
     margin-bottom: 12px;
     color: var(--muted);
-    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
   }
 
   .grid {
@@ -197,8 +207,8 @@
     position: relative;
     width: 100%;
     border: 1px solid var(--border);
-    border-left: 3px solid rgba(var(--section-rgb), 0.5);
-    background: linear-gradient(180deg, var(--card), rgba(18,29,47,0.95));
+    border-left: 4px solid rgb(var(--section-rgb));
+    background: var(--surface);
     color: var(--text);
     border-radius: var(--radius);
     padding: 10px 12px;
@@ -206,16 +216,13 @@
     grid-template-columns: 1fr auto;
     gap: 10px;
     align-items: start;
-    box-shadow: var(--shadow);
     cursor: pointer;
     transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
   }
 
   .stop:hover {
-    background: linear-gradient(180deg, var(--card-hover), rgba(21,37,60,0.98));
-    border-color: rgba(var(--section-rgb), 0.35);
-    border-left-color: rgba(var(--section-rgb), 0.7);
+    background: var(--surface-hover);
   }
 
   .stop:active {
@@ -229,9 +236,10 @@
 
   .stop-name {
     display: block;
-    font-size: 1.06rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--text);
     line-height: 1.15;
     text-decoration: none;
@@ -283,49 +291,67 @@
   .live-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .live-line {
     flex: 0 0 54px;
     width: 54px;
     padding: 4px 0;
-    border-radius: 10px;
-    background: rgba(var(--section-rgb), 0.18);
-    border: 1px solid rgba(var(--section-rgb), 0.25);
-    color: var(--section-line-text);
-    font-size: 0.72rem;
+    border-radius: var(--radius-sm);
+    background: rgb(var(--section-rgb));
+    color: var(--badge-text);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
     font-weight: 800;
     text-align: center;
   }
 
+  /* Spazio del badge sempre riservato: le strisce degli orari finiscono tutte allo stesso punto */
   .row-alert-container {
-    margin-left: auto;
+    flex: 0 0 20px;
     display: flex;
+    justify-content: flex-end;
   }
 
+  /* Stile tabellone: ogni riga di orari è una striscia "display" scura, in monospaziato,
+     con colonne di larghezza fissa che si incolonnano tra le righe */
   .live-times {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
-    color: var(--live);
-    line-height: 1.3;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    font-size: 0.82rem;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--display);
+    border: 1px solid var(--display-border);
+    color: var(--display-text);
+    line-height: 1.35;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.84rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .time-slot {
+    min-width: 3.75em;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
   }
 
+  .time-slot:first-child {
+    min-width: 4.4em;
+  }
+
+  /* Prossimo passaggio in giallo, come i LED dei tabelloni */
   .live-times strong {
-    font-size: 0.95rem;
-    color: #ffffff;
+    font-size: 1.02rem;
+    color: var(--next);
     font-weight: 800;
+    text-shadow: 0 0 10px rgba(255, 210, 63, 0.35);
   }
 
   .live-dot {
@@ -337,14 +363,16 @@
     margin-right: 3px;
     margin-bottom: 1px;
     vertical-align: middle;
-    box-shadow: 0 0 6px rgba(0, 230, 118, 0.6);
     animation: pulse 1.8s infinite ease-in-out;
   }
 
+  /* Il posto del pallino resta anche senza dato live, per non spostare l'orario */
+  .live-dot.is-off {
+    visibility: hidden;
+  }
+
   @keyframes pulse {
-    0% { transform: scale(0.9); opacity: 0.7; }
-    50% { transform: scale(1.3); opacity: 1; }
-    100% { transform: scale(0.9); opacity: 0.7; }
+    50% { opacity: 0.45; }
   }
 
   .stop-live.loading,
@@ -353,9 +381,8 @@
     display: block;
     margin-top: 8px;
     padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    background: var(--bg);
     font-size: 0.84rem;
     line-height: 1.35;
   }
@@ -366,7 +393,7 @@
 
   .chevron {
     align-self: center;
-    color: #7ea9d8;
+    color: var(--muted);
     font-size: 1.2rem;
     padding-top: 2px;
   }
@@ -377,19 +404,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    background: rgba(255,183,77,0.15);
-    border: 1px solid rgba(255,183,77,0.3);
-    color: #ffb74d;
-    font-size: 0.8rem;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-sm);
+    background: var(--warn);
+    color: var(--on-warn);
+    font-size: 0.78rem;
+    font-weight: 900;
     text-decoration: none;
     margin: 0;
   }
 
   .line-alert-badge:hover {
-    background: rgba(255,183,77,0.25);
+    filter: brightness(1.12);
   }
 
   .stop-live .line-alert-badge {
@@ -404,17 +431,17 @@
 
   .dev-card {
     border: 1px solid var(--border);
-    border-left: 3px solid rgba(var(--warn-rgb), 0.6);
-    background: linear-gradient(180deg, var(--card), rgba(18,29,47,0.95));
+    border-left: 4px solid var(--warn);
+    background: var(--surface);
     border-radius: var(--radius);
     padding: 14px;
-    box-shadow: var(--shadow);
     scroll-margin-top: calc(12px + env(safe-area-inset-top));
-    transition: box-shadow 0.4s ease;
+    transition: outline-color 0.4s ease;
+    outline: 2px solid transparent;
   }
 
   .dev-card.is-focused {
-    box-shadow: var(--shadow), 0 0 0 2px rgba(var(--warn-rgb), 0.6);
+    outline-color: var(--warn);
   }
 
   .dev-head {
@@ -428,10 +455,10 @@
     flex: 0 0 auto;
     min-width: 54px;
     padding: 4px 8px;
-    border-radius: 10px;
-    background: rgba(var(--warn-rgb), 0.16);
-    border: 1px solid rgba(var(--warn-rgb), 0.3);
-    color: #fff0d4;
+    border-radius: var(--radius-sm);
+    background: var(--warn);
+    color: var(--on-warn);
+    font-family: var(--font-mono);
     font-size: 0.8rem;
     font-weight: 800;
     text-align: center;
@@ -439,9 +466,9 @@
 
   .dev-head-title {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
   }
 
   .dev-alert + .dev-alert,
@@ -475,10 +502,8 @@
 
   .dev-route-dir {
     margin: 0;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: var(--muted);
   }
 
@@ -498,8 +523,8 @@
   }
 
   .dev-skipped li {
-    padding: 3px 9px;
-    border-radius: 999px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
     background: rgba(255,210,63,0.1);
     border: 1px dashed rgba(255,210,63,0.45);
     color: #ffeeb0;
@@ -515,10 +540,10 @@
   .dev-map {
     height: 260px;
     margin-top: 12px;
-    border-radius: 14px;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--border);
-    background: #0d1626;
+    background: var(--display);
   }
 
   .dev-legend {
@@ -552,7 +577,7 @@
     height: 8px;
     border-radius: 50%;
     border: 2px solid var(--swatch);
-    background: #0b1220;
+    background: var(--bg);
   }
 
   .dev-legend span.is-warn::before {
@@ -560,7 +585,7 @@
     width: 14px;
     height: 14px;
     border-radius: 3px;
-    color: #0b1220;
+    color: var(--bg);
     font-size: 0.65rem;
     font-weight: 900;
     line-height: 14px;
@@ -572,8 +597,8 @@
     place-items: center;
     border-radius: 5px;
     background: #ffd23f;
-    border: 2px solid #0b1220;
-    color: #0b1220;
+    border: 2px solid var(--bg);
+    color: var(--bg);
     font-size: 0.75rem;
     font-weight: 900;
     box-shadow: 0 0 0 2px rgba(255,210,63,0.5);
@@ -594,8 +619,8 @@
   .dev-empty,
   .dev-summary {
     padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius);
+    background: var(--surface);
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 0.88rem;
@@ -608,7 +633,7 @@
 
   /* Sfondo scuro finché le tiles non arrivano (Leaflet di default usa grigio chiaro) */
   .dev-map.leaflet-container {
-    background: #0d1626;
+    background: var(--display);
     font: inherit;
   }
 
@@ -625,8 +650,8 @@
   .hint {
     margin: 16px auto 0;
     padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius);
+    background: var(--surface);
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 0.9rem;
@@ -639,18 +664,16 @@
     left: 50%;
     bottom: calc(18px + env(safe-area-inset-bottom));
     transform: translateX(-50%) translateY(18px);
-    background: rgba(10, 18, 31, 0.94);
+    background: var(--surface-active);
     color: var(--text);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
     padding: 12px 16px;
     font-size: 0.92rem;
-    box-shadow: var(--shadow);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 20;
-    backdrop-filter: blur(8px);
   }
 
   .toast.show {
@@ -688,37 +711,33 @@
   }
 
   .section-title {
-    font-size: 0.78rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: -0.01em;
     color: var(--section-title);
   }
 
-  /* Colori per sezione: andata blu, ritorno verde acqua, misc ambra */
+  /* Colori per sezione: andata lilla, ritorno rosa, misc ciano */
   .section.andata {
-    --section-rgb: 90,169,255;
-    --section-title: #6bb5ff;
-    --section-line-text: #d7e9ff;
+    --section-rgb: 143,150,255;
+    --section-title: #a3a9ff;
   }
 
   .section.ritorno {
-    --section-rgb: 77,205,180;
-    --section-title: #5ee0c0;
-    --section-line-text: #c8f5ec;
+    --section-rgb: 255,106,213;
+    --section-title: #ff7fdc;
   }
 
   .section.misc {
-    --section-rgb: 255,183,77;
-    --section-title: #ffb74d;
-    --section-line-text: #fff0d4;
+    --section-rgb: 57,208,255;
+    --section-title: #5cd9ff;
   }
 
   /* Mobile compact */
   @media (max-width: 759px) {
     .stop {
       padding: 8px 10px;
-      border-radius: 16px;
     }
 
     .grid {
@@ -740,16 +759,20 @@
     }
 
     .live-line {
-      padding: 3px 6px;
-      font-size: 0.68rem;
+      flex-basis: 46px;
+      width: 46px;
+      padding: 3px 0;
+      font-size: 0.7rem;
     }
 
     .live-times {
+      gap: 4px;
+      padding: 2px 6px;
       font-size: 0.78rem;
     }
 
     .live-times strong {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
     }
 
     .live-row {
@@ -766,6 +789,11 @@
       padding: 28px 16px 40px;
     }
 
+    /* Due colonne di card: serve spazio perché i 4 orari in monospaziato stiano su una riga */
+    .app {
+      max-width: 840px;
+    }
+
     .grid {
       grid-template-columns: 1fr 1fr;
       gap: 12px;
@@ -778,10 +806,7 @@
     <header class="topbar">
       <div class="brand">
         <img src="logo/icon-96.png" alt="Staffarda Bus" width="42" height="42">
-        <div class="brand-copy">
-          <h1>Staffarda Bus</h1>
-          <p class="subtitle">Arrivi live per le fermate che usi davvero</p>
-        </div>
+        <h1>Staffarda Bus</h1>
       </div>
       <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna orari"><span class="refresh-icon" aria-hidden="true">↻</span></button>
     </header>
@@ -1087,7 +1112,7 @@
 
     // Il badge apre la linea nella vista Deviazioni
     function buildAlertBadge(alert, lineKey) {
-      const badge = el('a', 'line-alert-badge', '⚠');
+      const badge = el('a', 'line-alert-badge', '!');
       badge.href = `#deviazioni-${lineKey}`;
       badge.title = alert.title;
       badge.setAttribute('aria-label', alert.title);
@@ -1104,7 +1129,7 @@
         slot.title = t.realtime ? 'Live' : 'Programmato';
         const label = el(i === 0 ? 'strong' : 'span');
         // Limit the realtime indicator to only the first 2 upcoming buses per line.
-        if (t.realtime && i < 2) label.append(el('span', 'live-dot'));
+        label.append(el('span', t.realtime && i < 2 ? 'live-dot' : 'live-dot is-off'));
         label.append(formatClock(t.ts));
         slot.append(label);
         timesEl.append(slot);
@@ -1436,12 +1461,12 @@
           focus.extend(stretch.getBounds());
         }
         for (const stop of deviation.skipped || []) {
-          addStop(stop, { radius: 5, color: SKIPPED_COLOR, weight: 3, fillColor: '#0b1220', fillOpacity: 1 }, 'Saltata: ');
+          addStop(stop, { radius: 5, color: SKIPPED_COLOR, weight: 3, fillColor: '#0a0b1e', fillOpacity: 1 }, 'Saltata: ');
         }
         const route = data.routes.find(r => r.id === deviation.route);
         for (const [end, label] of [[deviation.from, 'Inizio deviazione: '], [deviation.to, 'Fine deviazione: ']]) {
           const stop = route?.stops.find(s => s.id === end.id);
-          if (stop) addStop(stop, { radius: 8, color: ENDS_COLOR, weight: 4, fillColor: '#0b1220', fillOpacity: 1 }, label);
+          if (stop) addStop(stop, { radius: 8, color: ENDS_COLOR, weight: 4, fillColor: '#0a0b1e', fillOpacity: 1 }, label);
         }
       }
 
@@ -1564,9 +1589,10 @@
     // solo se la pagina è visibile e sono vecchi.
     function tick() {
       renderAll();
-      if (document.visibilityState === 'visible' && Date.now() - lastRefresh >= AUTO_REFRESH_MS) {
-        refresh();
-      }
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastRefresh >= AUTO_REFRESH_MS) refresh();
+      // Anche fuori dalla vista Deviazioni: il contatore della scheda usa questi dati
+      if (Date.now() - deviationsLoadedAt > DEVIATIONS_MAX_AGE_MS) loadDeviations();
     }
 
     refreshBtn.addEventListener('click', () => {
@@ -1589,6 +1615,7 @@
     buildSections();
     showView();
     refresh();
+    if (currentView() !== 'deviazioni') loadDeviations();
     setInterval(tick, TICK_MS);
 
     if ('serviceWorker' in navigator) {
