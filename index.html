@@ -534,8 +534,6 @@
     const DATA_CACHE_KEY = 'staffarda-bus:last-data';
     // Oltre questa età i dati salvati non servono più: i bus sono già passati
     const DATA_CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
-    // Prima di quest'ora si apre "Andata", dopo "Ritorno"
-    const RETURN_FROM_HOUR = 14;
 
     // Una fermata può avere un solo `code` + `show`, oppure più `sources`
     // (fermata "logica" composta da più paline)
@@ -869,17 +867,10 @@
       return card;
     }
 
-    function isSectionOpenByDefault(id) {
-      const isReturnTime = new Date().getHours() >= RETURN_FROM_HOUR;
-      if (id === 'andata') return !isReturnTime;
-      if (id === 'ritorno') return isReturnTime;
-      return true;
-    }
-
     function buildSections() {
       for (const section of sections) {
         const details = el('details', `section ${section.id}`);
-        details.open = isSectionOpenByDefault(section.id);
+        details.open = true;
 
         const summary = el('summary');
         summary.append(el('span', 'section-title', section.label));

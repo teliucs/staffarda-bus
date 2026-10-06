@@ -80,4 +80,4 @@ It simply reads publicly available arrival information from their website.
 
 ## License
 
-GNU
+GNU General Public License v3.0. See [LICENSE](LICENSE).
