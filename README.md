@@ -6,28 +6,39 @@ The project was built to quickly check the next buses for the stops I actually u
 
 ## Features
 
-* 🚍 Live upcoming bus arrivals
-* ⚡ Fast and lightweight web interface
-* 📱 Mobile-friendly layout
-* 🔄 Real-time updates
-* ☁️ Cloudflare Worker API
+* 🚍 Live upcoming bus arrivals, with a green dot on real-time (GPS) times
+* 🔄 Auto-refresh every ~45 seconds and when you come back to the app
+* ⚠️ Line deviation alerts, linked to the GTT stop page
+* 🗂️ Stops grouped into collapsible sections (Andata, Ritorno, Misc)
+* 📱 Installable PWA: works offline and shows the last downloaded times
+* ⚡ Single static file, no dependencies, no build step
 
 ## How it works
 
-The frontend calls a **Cloudflare Worker API** that fetches the arrival data from the official GTT website and converts it into clean JSON.
+Everything runs in the browser from `index.html`. For each stop the app uses two data sources:
 
-The worker:
+1. **[GPA](https://gpa.madbob.org) (primary)**: `https://gpa.madbob.org/query.php?stop=<STOP_ID>` returns real-time and scheduled arrivals.
+   When a real-time arrival is within 3 minutes of a scheduled one, only the real-time one is kept.
+2. **Cloudflare Worker (fallback and alerts)**: used when GPA fails or doesn't answer within 5 seconds, and to read line deviation alerts.
 
-1. Receives a bus stop ID (`stop`)
-2. Requests the GTT arrivals page
-3. Parses the HTML
-4. Extracts lines and arrival times
-5. Returns structured JSON
+Times are shown as absolute clock times (e.g. `12:53`) and buses that have already passed disappear automatically.
 
-Example API request:
+## Cloudflare Worker
+
+The worker (not included in this repository) acts as a small proxy and parser for the GTT arrivals page.
+
+It fetches:
 
 ```
-/api?stop=548
+https://www.gtt.to.it/cms/percorari/arrivi?palina=<STOP_ID>
+```
+
+Then extracts the bus lines and the next arrival times from the HTML and returns structured JSON.
+
+Example request:
+
+```
+https://staffarda-bus-api.lorenzo-tegliucci.workers.dev/?stop=548
 ```
 
 Example response:
@@ -41,33 +52,33 @@ Example response:
 ]
 ```
 
-## Cloudflare Worker
+Deviation alerts come back as entries whose `line` starts with the line number followed by the deviation text (e.g. `"15 deviata ..."`).
 
-The worker acts as a small proxy and parser for the GTT arrivals page.
+## PWA and offline
 
-It fetches:
+* `manifest.json` makes the app installable, with a maskable icon for Android and an `apple-touch-icon` for iOS.
+* `sw.js` caches the app shell: the page is loaded network-first (falling back to the cache after 3 seconds or when offline), icons and manifest cache-first. API requests are not cached by the service worker.
+* The last arrivals and alerts are saved in `localStorage`, so on launch the app shows them immediately ("Dati delle HH:MM") while fresh data loads. Data older than 2 hours is ignored.
 
-```
-https://www.gtt.to.it/cms/percorari/arrivi?palina=<STOP_ID>
-```
-
-Then extracts the bus lines and the next arrival times from the HTML.
+If you change the icons or the manifest, bump the `CACHE` version in `sw.js` so installed apps pick up the new files.
 
 ## Customizing Stops
 
-To use your own stops, simply edit the stop IDs in the frontend code.
-
-Each stop corresponds to a **GTT stop number (palina)**.
-
-Example:
+Edit the `config` array at the top of the `<script>` in `index.html`.
+Each stop has a name and one or more **GTT stop numbers (palina)**, each with the lines to show:
 
 ```js
-/api?stop=548
+// Single palina
+{ name: '15 Poli', code: '549', show: ['15'] },
+
+// Several paline merged into one card
+{ name: 'Susa Casa', sources: [
+    { code: '2668', show: ['55'] },
+    { code: '3350', show: ['56'] },
+  ]},
 ```
 
-Replace the stop number with the one you want to monitor.
-
-You can find stop IDs on the official GTT website.
+You can find stop numbers on the official GTT website.
 
 ## Screenshot
 
@@ -76,7 +87,7 @@ You can find stop IDs on the official GTT website.
 ## Notes
 
 This project is **not affiliated with GTT**.
-It simply reads publicly available arrival information from their website.
+It simply reads publicly available arrival information from their website and from the GPA service.
 
 ## License
 
