@@ -915,6 +915,7 @@
     let deviationsLoadedAt = 0;
     let deviationsLoading = null;
     let deviationMaps = [];
+    let deviationResults = null;
     let leafletPromise = null;
     let dataSavedAt = null;
 
@@ -1271,8 +1272,16 @@
       .flatMap(stop => stop.sources.flatMap(src => src.show))
       .map(label => [normalizeLine(label), { key: normalizeLine(label), label }])).values()];
 
+    // Deviata = GTT pubblica il tratto deviato oppure un avviso della linea dice "deviata"
+    function isDeviatedLine(data) {
+      return data.deviations.length > 0 || data.alerts.some(alert => /deviat/i.test(alert.title));
+    }
+
+    // Prima di aprire la vista si usano gli avvisi delle paline; dopo, gli stessi dati delle card
     function updateDeviationCount() {
-      const count = allLines.filter(line => lineAlerts[line.key]?.length).length;
+      const count = deviationResults
+        ? deviationResults.filter(line => line.data && isDeviatedLine(line.data)).length
+        : allLines.filter(line => lineAlerts[line.key]?.length).length;
       devCount.hidden = !count;
       devCount.textContent = count;
     }
@@ -1313,6 +1322,10 @@
             }
           }));
           deviationsLoadedAt = Date.now();
+          if (results.some(line => line.data)) {
+            deviationResults = results;
+            updateDeviationCount();
+          }
           await renderDeviations(results);
         })().finally(() => {
           deviationsLoading = null;
@@ -1455,7 +1468,7 @@
 
       const head = el('div', 'dev-head');
       head.append(el('span', 'dev-line', line.label));
-      head.append(el('h2', 'dev-head-title', deviations.length ? 'Linea deviata' : 'Avvisi sulla linea'));
+      head.append(el('h2', 'dev-head-title', isDeviatedLine(line.data) ? 'Linea deviata' : 'Avvisi sulla linea'));
       card.append(head);
 
       for (const alert of alerts) {
@@ -1480,10 +1493,10 @@
       deviationMaps.forEach(map => map.remove());
       deviationMaps = [];
 
-      // Prima le linee con un tratto deviato, poi quelle con soli avvisi
+      // Prima le linee deviate, poi quelle con altri avvisi
       const withNews = results
         .filter(line => line.data && (line.data.alerts.length || line.data.deviations.length))
-        .sort((a, b) => Number(Boolean(b.data.deviations.length)) - Number(Boolean(a.data.deviations.length)));
+        .sort((a, b) => Number(isDeviatedLine(b.data)) - Number(isDeviatedLine(a.data)));
       const quiet = results.filter(line => line.data && !withNews.includes(line));
       const failed = results.filter(line => line.error);
 
