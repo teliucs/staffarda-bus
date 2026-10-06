@@ -110,6 +110,23 @@
     transform: scale(0.98);
   }
 
+  .refresh-btn:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .refresh-icon {
+    display: inline-block;
+  }
+
+  .refresh-btn.is-loading .refresh-icon {
+    animation: spin 0.9s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
   .status-row {
     display: flex;
     justify-content: flex-end;
@@ -119,8 +136,6 @@
     font-size: 0.8rem;
   }
 
-
-
   .grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -128,8 +143,10 @@
   }
 
   .stop {
+    position: relative;
     width: 100%;
     border: 1px solid var(--border);
+    border-left: 3px solid rgba(var(--section-rgb), 0.5);
     background: linear-gradient(180deg, var(--card), rgba(18,29,47,0.95));
     color: var(--text);
     border-radius: var(--radius);
@@ -138,17 +155,16 @@
     grid-template-columns: 1fr auto;
     gap: 10px;
     align-items: start;
-    text-align: left;
     box-shadow: var(--shadow);
     cursor: pointer;
     transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
-    min-height: auto;
   }
 
   .stop:hover {
     background: linear-gradient(180deg, var(--card-hover), rgba(21,37,60,0.98));
-    border-color: rgba(90,169,255,0.28);
+    border-color: rgba(var(--section-rgb), 0.35);
+    border-left-color: rgba(var(--section-rgb), 0.7);
   }
 
   .stop:active {
@@ -167,6 +183,24 @@
     letter-spacing: -0.03em;
     color: var(--text);
     line-height: 1.15;
+    text-decoration: none;
+  }
+
+  /* Il link del nome copre tutta la card, così resta cliccabile per intero */
+  .stop-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .stop-link:focus-visible {
+    outline: none;
+  }
+
+  .stop-link:focus-visible::after {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .stop-code {
@@ -174,6 +208,17 @@
     margin-top: 4px;
     font-size: 0.86rem;
     color: var(--muted);
+  }
+
+  .stop-code-link {
+    position: relative;
+    z-index: 1;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .stop-code-link:hover {
+    text-decoration: underline;
   }
 
   .stop-live {
@@ -195,9 +240,9 @@
     width: 54px;
     padding: 4px 0;
     border-radius: 10px;
-    background: rgba(90,169,255,0.14);
-    border: 1px solid rgba(90,169,255,0.16);
-    color: #d7e9ff;
+    background: rgba(var(--section-rgb), 0.18);
+    border: 1px solid rgba(var(--section-rgb), 0.25);
+    color: var(--section-line-text);
     font-size: 0.72rem;
     font-weight: 800;
     text-align: center;
@@ -276,6 +321,8 @@
   }
 
   .line-alert-badge {
+    position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -364,58 +411,26 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--section-title);
   }
 
-  /* Andata: blue accent */
-  .section.andata .stop {
-    border-left: 3px solid rgba(90,169,255,0.5);
-  }
-  .section.andata .live-line {
-    background: rgba(90,169,255,0.18);
-    border-color: rgba(90,169,255,0.25);
-    color: #d7e9ff;
-  }
-  .section.andata .stop:hover {
-    border-color: rgba(90,169,255,0.35);
-    border-left-color: rgba(90,169,255,0.7);
-  }
-  .section.andata .section-title {
-    color: #6bb5ff;
+  /* Colori per sezione: andata blu, ritorno verde acqua, misc ambra */
+  .section.andata {
+    --section-rgb: 90,169,255;
+    --section-title: #6bb5ff;
+    --section-line-text: #d7e9ff;
   }
 
-  /* Ritorno: teal/green accent */
-  .section.ritorno .stop {
-    border-left: 3px solid rgba(77,205,180,0.5);
-  }
-  .section.ritorno .live-line {
-    background: rgba(77,205,180,0.18);
-    border-color: rgba(77,205,180,0.25);
-    color: #c8f5ec;
-  }
-  .section.ritorno .stop:hover {
-    border-color: rgba(77,205,180,0.35);
-    border-left-color: rgba(77,205,180,0.7);
-  }
-  .section.ritorno .section-title {
-    color: #5ee0c0;
+  .section.ritorno {
+    --section-rgb: 77,205,180;
+    --section-title: #5ee0c0;
+    --section-line-text: #c8f5ec;
   }
 
-  /* Misc: amber accent */
-  .section.misc .stop {
-    border-left: 3px solid rgba(255,183,77,0.5);
-  }
-  .section.misc .live-line {
-    background: rgba(255,183,77,0.18);
-    border-color: rgba(255,183,77,0.25);
-    color: #fff0d4;
-  }
-  .section.misc .stop:hover {
-    border-color: rgba(255,183,77,0.35);
-    border-left-color: rgba(255,183,77,0.7);
-  }
-  .section.misc .section-title {
-    color: #ffb74d;
+  .section.misc {
+    --section-rgb: 255,183,77;
+    --section-title: #ffb74d;
+    --section-line-text: #fff0d4;
   }
 
   /* Mobile compact */
@@ -444,7 +459,6 @@
     }
 
     .live-line {
-      min-width: 34px;
       padding: 3px 6px;
       font-size: 0.68rem;
     }
@@ -488,7 +502,7 @@
           <p class="subtitle">Arrivi live per le fermate che usi davvero</p>
         </div>
       </div>
-      <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna orari">↻</button>
+      <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna orari"><span class="refresh-icon" aria-hidden="true">↻</span></button>
     </header>
 
     <div class="status-row">
@@ -505,8 +519,19 @@
   <script>
     const API_BASE = "https://staffarda-bus-api.lorenzo-tegliucci.workers.dev";
     const PIRATE_API = "https://gpa.madbob.org/query.php";
+    const GTT_STOP_URL = "https://www.gtt.to.it/cms/percorari/arrivi?palina=";
 
-    const sections = [
+    const FETCH_TIMEOUT_MS = 5000;
+    const AUTO_REFRESH_MS = 45 * 1000;
+    const TICK_MS = 15 * 1000;
+    const MAX_SLOTS = 4;
+    const DEDUP_WINDOW_MS = 3 * 60 * 1000;
+    // Un passaggio resta visibile fino a 1 minuto dopo l'orario previsto
+    const DEPARTED_GRACE_MS = 60 * 1000;
+
+    // Una fermata può avere un solo `code` + `show`, oppure più `sources`
+    // (fermata "logica" composta da più paline)
+    const config = [
       {
         id: 'andata',
         label: 'Andata',
@@ -553,88 +578,47 @@
       },
     ];
 
+    // Forma unica: ogni fermata diventa { name, sources: [{ code, show }] }
+    const sections = config.map(section => ({
+      ...section,
+      stops: section.stops.map(stop => ({
+        name: stop.name,
+        sources: stop.sources || [{ code: stop.code, show: stop.show }],
+      })),
+    }));
+    const allStops = sections.flatMap(section => section.stops);
+    const allCodes = [...new Set(allStops.flatMap(stop => stop.sources.map(src => src.code)))];
+
     const sectionsEl = document.getElementById('sections');
     const toast = document.getElementById('toast');
     const refreshBtn = document.getElementById('refreshBtn');
     const lastUpdate = document.getElementById('lastUpdate');
-    let toastTimer;
+
+    // stop -> { status: 'loading' | 'ready' | 'error', rows: [{ line, times: [{ ts, realtime }] }] }
+    const stopState = new Map();
+    const liveEls = new Map(); // stop -> elemento .stop-live
     let lineAlerts = {}; // { "15": [{title, link}], "33": [...] }
+    let toastTimer;
+    let refreshing = false;
+    let lastRefresh = 0;
 
-    // Collect all line numbers we care about
-    function getAllLines() {
-      const lines = new Set();
-      for (const sec of sections) {
-        for (const stop of sec.stops) {
-          const shows = stop.sources ? stop.sources.flatMap(s => s.show) : stop.show;
-          shows.forEach(l => lines.add(l));
-        }
-      }
-      return lines;
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
     }
 
-    // Fetch alerts from our worker API (which scrapes the GTT palina pages directly)
-    // This catches local/temporary deviations that the general RSS feed misses.
-    async function fetchAlerts() {
-      try {
-        const codes = new Set();
-        for (const sec of sections) {
-          for (const stop of sec.stops) {
-            if (stop.sources) stop.sources.forEach(s => codes.add(s.code));
-            else codes.add(stop.code);
-          }
-        }
-        
-        const alerts = {};
-        
-        await Promise.all(Array.from(codes).map(async code => {
-          try {
-            const res = await fetch(`${API_BASE}/?stop=${code}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            
-            data.forEach(item => {
-              if (item.line.toLowerCase().includes('deviat')) {
-                const match = item.line.match(/^([A-Z0-9\+]+)\s+(deviat.*)$/i);
-                if (match) {
-                  const lineNum = match[1];
-                  const lineKey = normalizeLine(lineNum);
-                  const text = match[2].trim();
-                  
-                  if (!alerts[lineKey]) alerts[lineKey] = [];
-                  
-                  const title = `Linea ${lineNum} ${text}`;
-                  if (!alerts[lineKey].some(a => a.title === title)) {
-                    alerts[lineKey].push({ 
-                      title, 
-                      link: `https://www.gtt.to.it/cms/percorari/arrivi?palina=${code}` 
-                    });
-                  }
-                }
-              }
-            });
-          } catch(e) {}
-        }));
-
-        lineAlerts = alerts;
-      } catch (e) {
-        console.warn('Failed to fetch alerts:', e);
-      }
+    function externalLink(className, href, text) {
+      const link = el('a', className, text);
+      link.href = href;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      return link;
     }
 
-    // Get alerts for a stop's lines
-    function getStopAlerts(stop) {
-      const shows = stop.sources ? stop.sources.flatMap(s => s.show) : stop.show;
-      const found = [];
-      for (const line of shows) {
-        if (lineAlerts[line]) {
-          for (const alert of lineAlerts[line]) {
-            if (!found.some(f => f.link === alert.link)) {
-              found.push(alert);
-            }
-          }
-        }
-      }
-      return found;
+    function stopUrl(code) {
+      return GTT_STOP_URL + encodeURIComponent(code);
     }
 
     function showToast(text) {
@@ -644,12 +628,6 @@
       toastTimer = setTimeout(() => toast.classList.remove('show'), 1400);
     }
 
-    function openStop(code, name) {
-      showToast(`Apro ${name} · fermata ${code}`);
-      const url = `https://www.gtt.to.it/cms/percorari/arrivi?palina=${encodeURIComponent(code)}`;
-      window.open(url, '_blank');
-    }
-
     function normalizeLine(value) {
       return String(value)
         .replace(/\s+/g, '')
@@ -657,210 +635,296 @@
         .toUpperCase();
     }
 
-    function setLastUpdate() {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      lastUpdate.textContent = `Aggiornato alle ${hh}:${mm}`;
+    // "HH:MM" → timestamp, scegliendo il giorno più vicino ad adesso:
+    // alle 23:50 un "00:03" è domani, alle 00:05 un "23:58" è ieri.
+    function clockToTimestamp(value, now) {
+      const match = /(\d{1,2}):(\d{2})/.exec(String(value));
+      if (!match) return null;
+      const date = new Date(now);
+      date.setHours(Number(match[1]), Number(match[2]), 0, 0);
+      const diff = date.getTime() - now;
+      const halfDay = 12 * 60 * 60 * 1000;
+      if (diff < -halfDay) date.setDate(date.getDate() + 1);
+      else if (diff > halfDay) date.setDate(date.getDate() - 1);
+      return date.getTime();
     }
 
-    function timeToMinutes(hhmm) {
-      const [h, m] = hhmm.split(':').map(Number);
-      return h * 60 + m;
+    function formatClock(ts) {
+      const date = new Date(ts);
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    function sortByTime(times) {
+      return times.sort((a, b) => a.ts - b.ts);
     }
 
     // Transform Pirate API response: [{line, hour, realtime}] → grouped by line
     // Smart dedup: drop scheduled times only if a realtime entry is within 3 min (same bus)
     function transformPirateData(data) {
-      const grouped = {};
+      const now = Date.now();
+      const grouped = new Map();
       for (const entry of data) {
-        const line = entry.line;
-        if (!grouped[line]) grouped[line] = { line, times: [] };
-        const hhmm = entry.hour.substring(0, 5);
-        grouped[line].times.push({ time: hhmm, realtime: entry.realtime });
+        const ts = clockToTimestamp(entry.hour, now);
+        if (ts == null) continue;
+        if (!grouped.has(entry.line)) grouped.set(entry.line, []);
+        grouped.get(entry.line).push({ ts, realtime: Boolean(entry.realtime) });
       }
-      for (const key of Object.keys(grouped)) {
-        const times = grouped[key].times;
+      return [...grouped].map(([line, times]) => {
         const rtTimes = times.filter(t => t.realtime);
-        if (!rtTimes.length) continue;
-        // Keep scheduled only if no realtime within 3 min
-        const kept = times.filter(t => {
-          if (t.realtime) return true;
-          const tMin = timeToMinutes(t.time);
-          return !rtTimes.some(r => Math.abs(timeToMinutes(r.time) - tMin) <= 3);
-        });
-        grouped[key].times = kept.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
-      }
-      return Object.values(grouped);
+        const kept = times.filter(t =>
+          t.realtime || !rtTimes.some(r => Math.abs(r.ts - t.ts) <= DEDUP_WINDOW_MS));
+        return { line, times: sortByTime(kept) };
+      });
     }
 
     // Transform our fallback API response: [{line, times: [str]}] → same format
     function transformFallbackData(data) {
+      const now = Date.now();
       return data.map(item => ({
         line: item.line,
-        times: item.times.map(t => ({ time: t, realtime: null }))
+        times: sortByTime((item.times || [])
+          .map(t => ({ ts: clockToTimestamp(t, now), realtime: false }))
+          .filter(t => t.ts != null)),
       }));
     }
 
-    function formatLiveRows(stop, arrivals) {
-      const wanted = stop.show.map(normalizeLine);
+    async function fetchJson(url) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
-      const filtered = arrivals.filter(item => {
-        const line = normalizeLine(item.line);
-        return wanted.includes(line);
+    // Una sola richiesta al Worker per palina a ogni aggiornamento,
+    // condivisa tra il fallback degli orari e gli avvisi.
+    function createWorkerClient() {
+      const cache = new Map();
+      return code => {
+        if (!cache.has(code)) {
+          cache.set(code, fetchJson(`${API_BASE}/?stop=${encodeURIComponent(code)}`));
+        }
+        return cache.get(code);
+      };
+    }
+
+    async function fetchArrivals(code, worker) {
+      try {
+        return transformPirateData(await fetchJson(`${PIRATE_API}?stop=${encodeURIComponent(code)}`));
+      } catch (e) {
+        return transformFallbackData(await worker(code));
+      }
+    }
+
+    // Alerts come from our worker API (which scrapes the GTT palina pages directly).
+    // This catches local/temporary deviations that the general RSS feed misses.
+    async function fetchAlerts(worker) {
+      const alerts = {};
+      await Promise.all(allCodes.map(async code => {
+        let data;
+        try {
+          data = await worker(code);
+        } catch (e) {
+          return;
+        }
+        for (const item of data) {
+          const match = /^([A-Z0-9+]+)\s+(deviat.*)$/i.exec(String(item.line));
+          if (!match) continue;
+          const lineKey = normalizeLine(match[1]);
+          const title = `Linea ${match[1]} ${match[2].trim()}`;
+          if (!alerts[lineKey]) alerts[lineKey] = [];
+          if (!alerts[lineKey].some(a => a.title === title)) {
+            alerts[lineKey].push({ title, link: stopUrl(code) });
+          }
+        }
+      }));
+      return alerts;
+    }
+
+    // Returns false if the stop could not be updated
+    async function loadStop(stop, worker) {
+      let ok = true;
+      try {
+        const results = await Promise.all(stop.sources.map(async src => {
+          const wanted = src.show.map(normalizeLine);
+          const arrivals = await fetchArrivals(src.code, worker);
+          return arrivals.filter(item => wanted.includes(normalizeLine(item.line)));
+        }));
+        stopState.set(stop, { status: 'ready', rows: results.flat() });
+      } catch (e) {
+        ok = false;
+        // Se avevamo già dei dati li teniamo invece di mostrare l'errore
+        if (stopState.get(stop)?.status !== 'ready') {
+          stopState.set(stop, { status: 'error', rows: [] });
+        }
+      }
+      renderLive(stop, Date.now());
+      return ok;
+    }
+
+    function buildAlertBadge(alert) {
+      const badge = externalLink('line-alert-badge', alert.link, '⚠');
+      badge.title = alert.title;
+      badge.setAttribute('aria-label', alert.title);
+      return badge;
+    }
+
+    function buildLiveRow(row) {
+      const rowEl = el('div', 'live-row');
+      rowEl.append(el('span', 'live-line', row.line));
+
+      const timesEl = el('div', 'live-times');
+      row.times.slice(0, MAX_SLOTS).forEach((t, i) => {
+        const slot = el('span', 'time-slot');
+        slot.title = t.realtime ? 'Live' : 'Programmato';
+        const label = el(i === 0 ? 'strong' : 'span');
+        // Limit the realtime indicator to only the first 2 upcoming buses per line.
+        if (t.realtime && i < 2) label.append(el('span', 'live-dot'));
+        label.append(formatClock(t.ts));
+        slot.append(label);
+        timesEl.append(slot);
       });
+      rowEl.append(timesEl);
 
-      if (!filtered.length) {
-        return '<span class="stop-live empty">Nessun orario trovato</span>';
-      }
+      const alertSlot = el('span', 'row-alert-container');
+      const alert = lineAlerts[normalizeLine(row.line)]?.[0];
+      if (alert) alertSlot.append(buildAlertBadge(alert));
+      rowEl.append(alertSlot);
 
-      const rows = filtered.map(item => {
-        const lineKey = normalizeLine(item.line);
-        const slots = item.times.slice(0, 4);
-        const parts = slots.map((s, i) => {
-          // Limit the realtime indicator to only the first 2 upcoming buses per line.
-          const isRealLive = s.realtime && i < 2;
-          const dot = isRealLive ? '<span class="live-dot" title="Live"></span>' : '';
-          const label = `${dot}${s.time}`;
-          const formatted = i === 0 ? `<strong>${label}</strong>` : label;
-          return `<span class="time-slot">${formatted}</span>`;
-        });
-        const timesHtml = `<div class="live-times">${parts.join('')}</div>`;
-
-        let alertHtml = '';
-        if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
-          const a = lineAlerts[lineKey][0];
-          alertHtml = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠</a>`;
-        }
-
-        return `
-          <div class="live-row" data-line="${lineKey}">
-            <span class="live-line">${item.line}</span>
-            ${timesHtml}
-            <span class="row-alert-container">${alertHtml}</span>
-          </div>
-        `;
-      }).join('');
-
-      return `<div class="stop-live">${rows}</div>`;
+      return rowEl;
     }
 
-    async function fetchStop(code) {
-      try {
-        const res = await fetch(`${PIRATE_API}?stop=${encodeURIComponent(code)}`);
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        return transformPirateData(data);
-      } catch (e) {}
-      const res = await fetch(`${API_BASE}/?stop=${encodeURIComponent(code)}`);
-      const data = await res.json();
-      return transformFallbackData(data);
+    function setLiveMessage(container, kind, text) {
+      container.className = `stop-live ${kind}`;
+      container.textContent = text;
     }
 
-    async function loadArrivals(stop, liveEl) {
-      liveEl.className = 'stop-live loading';
-      liveEl.textContent = 'Caricamento orari...';
-      try {
-        if (stop.sources) {
-          const fetches = stop.sources.map(async (src) => {
-            const arrivals = await fetchStop(src.code);
-            const wanted = src.show.map(normalizeLine);
-            return arrivals.filter(item => wanted.includes(normalizeLine(item.line)));
-          });
-          const results = await Promise.all(fetches);
-          const allArrivals = results.flat();
-          const allShow = stop.sources.flatMap(s => s.show);
-          liveEl.outerHTML = formatLiveRows({ ...stop, show: allShow }, allArrivals);
-        } else {
-          const arrivals = await fetchStop(stop.code);
-          liveEl.outerHTML = formatLiveRows(stop, arrivals);
-        }
-      } catch (error) {
-        liveEl.className = 'stop-live error';
-        liveEl.textContent = 'Orari non disponibili';
+    function renderLive(stop, now) {
+      const container = liveEls.get(stop);
+      const state = stopState.get(stop);
+      if (!state || state.status === 'loading') {
+        return setLiveMessage(container, 'loading', 'Caricamento orari...');
       }
+      if (state.status === 'error') {
+        return setLiveMessage(container, 'error', 'Orari non disponibili');
+      }
+
+      const rows = state.rows
+        .map(row => ({ line: row.line, times: row.times.filter(t => t.ts - now >= -DEPARTED_GRACE_MS) }))
+        .filter(row => row.times.length);
+      if (!rows.length) {
+        return setLiveMessage(container, 'empty', 'Nessun orario trovato');
+      }
+
+      container.className = 'stop-live';
+      container.replaceChildren(...rows.map(buildLiveRow));
+    }
+
+    function renderAll() {
+      const now = Date.now();
+      allStops.forEach(stop => renderLive(stop, now));
     }
 
     function buildCard(stop) {
-      const button = document.createElement('button');
-      const codes = stop.sources ? stop.sources.map(s => s.code) : [stop.code];
-      const codeLabel = codes.map(c => `Fermata ${c}`).join(' · ');
+      const card = el('article', 'stop');
+      const main = el('div', 'stop-main');
 
-      button.className = 'stop';
-      button.type = 'button';
-      button.innerHTML = `
-        <div class="stop-main">
-          <span class="stop-name">${stop.name}</span>
-          <span class="stop-code">${codeLabel}</span>
-          <span class="stop-live loading">Caricamento orari...</span>
-        </div>
-        <div class="chevron">›</div>
-      `;
+      main.append(externalLink('stop-name stop-link', stopUrl(stop.sources[0].code), stop.name));
 
-      button.addEventListener('click', () => openStop(codes[0], stop.name));
-      return button;
+      // Con più paline ogni codice ha il suo link
+      const codesEl = el('span', 'stop-code');
+      stop.sources.forEach((src, i) => {
+        if (i > 0) codesEl.append(' · ');
+        const label = `Fermata ${src.code}`;
+        codesEl.append(stop.sources.length > 1
+          ? externalLink('stop-code-link', stopUrl(src.code), label)
+          : label);
+      });
+      main.append(codesEl);
+
+      const live = el('div');
+      liveEls.set(stop, live);
+      main.append(live);
+      renderLive(stop, Date.now());
+
+      const chevron = el('div', 'chevron', '›');
+      chevron.setAttribute('aria-hidden', 'true');
+
+      card.append(main, chevron);
+      return card;
     }
 
-    async function renderStops() {
-      // Fetch alerts without blocking
-      fetchAlerts().then(() => {
-        document.querySelectorAll('.live-row').forEach(row => {
-          const lineKey = row.dataset.line;
-          if (lineAlerts[lineKey] && lineAlerts[lineKey].length > 0) {
-            const container = row.querySelector('.row-alert-container');
-            if (container && !container.innerHTML) {
-              const a = lineAlerts[lineKey][0];
-              container.innerHTML = `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" class="line-alert-badge" title="${a.title.replace(/"/g, '&quot;')}">⚠</a>`;
-            }
-          }
-        });
-      });
-
-      const openState = {};
-      sectionsEl.querySelectorAll('.section').forEach(det => {
-        openState[det.dataset.id] = det.open;
-      });
-
-      sectionsEl.innerHTML = '';
-      const allLoadTasks = [];
-
+    function buildSections() {
       for (const section of sections) {
-        const details = document.createElement('details');
-        details.className = `section ${section.id}`;
-        details.dataset.id = section.id;
-        details.open = openState[section.id] !== undefined ? openState[section.id] : true;
+        const details = el('details', `section ${section.id}`);
+        details.open = true;
 
-        const summary = document.createElement('summary');
-        summary.innerHTML = `<span class="section-title">${section.label}</span>`;
-        details.appendChild(summary);
+        const summary = el('summary');
+        summary.append(el('span', 'section-title', section.label));
 
-        const grid = document.createElement('div');
-        grid.className = 'grid';
+        const grid = el('div', 'grid');
+        section.stops.forEach(stop => grid.append(buildCard(stop)));
 
-        for (const stop of section.stops) {
-          const card = buildCard(stop);
-          grid.appendChild(card);
-        }
-
-        details.appendChild(grid);
-        sectionsEl.appendChild(details);
-
-        const liveEls = [...grid.querySelectorAll('.stop-live')];
-        section.stops.forEach((stop, index) => {
-          allLoadTasks.push(loadArrivals(stop, liveEls[index]));
-        });
+        details.append(summary, grid);
+        sectionsEl.append(details);
       }
-
-      await Promise.all(allLoadTasks);
-      setLastUpdate();
     }
 
-    refreshBtn.addEventListener('click', async () => {
+    function setLastUpdate(failedCount) {
+      const suffix = failedCount ? ' · alcune fermate non aggiornate' : '';
+      lastUpdate.textContent = `Aggiornato alle ${formatClock(Date.now())}${suffix}`;
+    }
+
+    async function refresh() {
+      if (refreshing) return;
+      refreshing = true;
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('is-loading');
+
+      try {
+        const worker = createWorkerClient();
+        const alertsTask = fetchAlerts(worker).then(alerts => {
+          lineAlerts = alerts;
+          renderAll();
+        });
+        const results = await Promise.all(allStops.map(stop => loadStop(stop, worker)));
+        await alertsTask;
+        setLastUpdate(results.filter(ok => !ok).length);
+      } finally {
+        lastRefresh = Date.now();
+        refreshing = false;
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('is-loading');
+      }
+    }
+
+    // Nasconde in locale i passaggi già avvenuti e ricarica i dati
+    // solo se la pagina è visibile e sono vecchi.
+    function tick() {
+      renderAll();
+      if (document.visibilityState === 'visible' && Date.now() - lastRefresh >= AUTO_REFRESH_MS) {
+        refresh();
+      }
+    }
+
+    refreshBtn.addEventListener('click', () => {
       showToast('Aggiorno gli orari');
-      await renderStops();
+      refresh();
     });
 
-    renderStops();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') tick();
+    });
+
+    buildSections();
+    refresh();
+    setInterval(tick, TICK_MS);
   </script>
 </body>
 </html>
