@@ -575,6 +575,16 @@
     font: inherit;
   }
 
+  /* Mappa OpenStreetMap standard resa scura per stare con il tema dell'app */
+  .dev-map .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.5);
+  }
+
+  .dev-map-wrap {
+    margin-top: 14px;
+    padding-top: 2px;
+  }
+
   .hint {
     margin: 16px auto 0;
     padding: 14px 16px;
@@ -1274,7 +1284,10 @@
       return deviationsLoading;
     }
 
-    function buildDeviationRoute(line, deviation) {
+    // Colori dei percorsi sulla mappa, uno per direzione
+    const ROUTE_COLORS = ['#5aa9ff', '#4dcdb4', '#b39dff', '#7f8ea8'];
+
+    function buildDeviationRoute(deviation) {
       const block = el('div', 'dev-route');
       if (deviation.direction) block.append(el('p', 'dev-route-dir', `Direzione ${deviation.direction}`));
 
@@ -1292,24 +1305,39 @@
         deviation.skipped.forEach(stop => list.append(el('li', null, `${stop.name} · ${stop.id}`)));
         block.append(list);
       }
-
-      if (deviation.paths.length) {
-        const map = el('div', 'dev-map');
-        const legend = el('div', 'dev-legend');
-        [['Percorso normale', '#7f8ea8'], ['Tratto non percorso', 'var(--danger)'], ['Inizio e fine deviazione', '#5ee0c0']]
-          .forEach(([label, color]) => {
-            const item = el('span', null, label);
-            item.style.setProperty('--swatch', color);
-            legend.append(item);
-          });
-        block.append(map, legend);
-        const route = line.data.routes.find(r => r.id === deviation.route);
-        block.mapTask = () => drawDeviationMap(map, route, deviation);
-      }
       return block;
     }
 
-    async function drawDeviationMap(container, route, deviation) {
+    function routeLabel(route) {
+      return (route.name || route.id).replace(/\s+-\s+/, ' → ');
+    }
+
+    // Una mappa per linea: percorsi normali, tratti non percorsi e fermate citate negli avvisi
+    function buildLineMap(data) {
+      if (!data.routes.length) return null;
+      const wrap = el('div', 'dev-map-wrap');
+      const map = el('div', 'dev-map');
+
+      const items = data.routes.map((route, i) => [routeLabel(route), ROUTE_COLORS[i % ROUTE_COLORS.length]]);
+      if (data.deviations.some(d => d.paths.length)) {
+        items.push(['Tratto non percorso', 'var(--danger)'], ['Inizio e fine deviazione', '#5ee0c0']);
+      }
+      if (data.alerts.some(alert => alert.stops?.length)) {
+        items.push(['Fermate citate negli avvisi', 'var(--warn)']);
+      }
+      const legend = el('div', 'dev-legend');
+      for (const [label, color] of items) {
+        const item = el('span', null, label);
+        item.style.setProperty('--swatch', color);
+        legend.append(item);
+      }
+
+      wrap.append(map, legend);
+      wrap.mapTask = () => drawLineMap(map, data);
+      return wrap;
+    }
+
+    async function drawLineMap(container, data) {
       let L;
       try {
         L = await loadLeaflet();
@@ -1320,38 +1348,52 @@
       const map = L.map(container, {
         scrollWheelZoom: false,
         dragging: !L.Browser.mobile,
-        attributionControl: true,
       });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      if (route?.path.length) {
-        L.polyline(route.path, { color: '#7f8ea8', weight: 4, opacity: 0.55 }).addTo(map);
-      }
-      // GTT pubblica il tratto del percorso normale che non viene fatto,
-      // non il percorso alternativo (quello è solo nel testo dell'avviso)
-      const skippedStretch = L.polyline(deviation.paths, { color: '#ff7a7a', weight: 5, opacity: 0.95, dashArray: '8 6' }).addTo(map);
+      const lineBounds = L.latLngBounds([]);
+      data.routes.forEach((route, i) => {
+        const polyline = L.polyline(route.path, { color: ROUTE_COLORS[i % ROUTE_COLORS.length], weight: 4, opacity: 0.8 })
+          .bindTooltip(routeLabel(route), { sticky: true })
+          .addTo(map);
+        lineBounds.extend(polyline.getBounds());
+      });
 
-      const bounds = skippedStretch.getBounds();
-      for (const stop of deviation.skipped || []) {
-        L.circleMarker([stop.lat, stop.lng], { radius: 5, color: '#ff7a7a', weight: 2, fillColor: '#ff7a7a', fillOpacity: 0.6 })
-          .bindTooltip(`Saltata: ${stop.name} · ${stop.id}`)
-          .addTo(map);
-        bounds.extend([stop.lat, stop.lng]);
+      // Zona su cui centrare la mappa: deviazioni e fermate citate, altrimenti tutta la linea
+      const focus = L.latLngBounds([]);
+      const addStop = (stop, style, label) => {
+        L.circleMarker([stop.lat, stop.lng], style).bindTooltip(`${label}${stop.name} · ${stop.id}`).addTo(map);
+        focus.extend([stop.lat, stop.lng]);
+      };
+
+      for (const deviation of data.deviations) {
+        // GTT pubblica il tratto del percorso normale che non viene fatto,
+        // non il percorso alternativo (quello è solo nel testo dell'avviso)
+        if (deviation.paths.length) {
+          const stretch = L.polyline(deviation.paths, { color: '#ff7a7a', weight: 5, opacity: 0.95, dashArray: '8 6' }).addTo(map);
+          focus.extend(stretch.getBounds());
+        }
+        for (const stop of deviation.skipped || []) {
+          addStop(stop, { radius: 5, color: '#ff7a7a', weight: 2, fillColor: '#ff7a7a', fillOpacity: 0.6 }, 'Saltata: ');
+        }
+        const route = data.routes.find(r => r.id === deviation.route);
+        for (const [end, label] of [[deviation.from, 'Inizio deviazione: '], [deviation.to, 'Fine deviazione: ']]) {
+          const stop = route?.stops.find(s => s.id === end.id);
+          if (stop) addStop(stop, { radius: 7, color: '#5ee0c0', weight: 3, fillColor: '#0b1220', fillOpacity: 1 }, label);
+        }
       }
-      const ends = [[deviation.from, 'Inizio deviazione'], [deviation.to, 'Fine deviazione']];
-      for (const [end, label] of ends) {
-        const stop = route?.stops.find(s => s.id === end.id);
-        if (!stop) continue;
-        L.circleMarker([stop.lat, stop.lng], { radius: 7, color: '#5ee0c0', weight: 3, fillColor: '#0b1220', fillOpacity: 1 })
-          .bindTooltip(`${label}: ${stop.name} · ${stop.id}`)
-          .addTo(map);
-        bounds.extend([stop.lat, stop.lng]);
+
+      for (const alert of data.alerts) {
+        for (const stop of alert.stops || []) {
+          addStop(stop, { radius: 8, color: '#ffb74d', weight: 3, fillColor: '#ffb74d', fillOpacity: 0.35 }, 'Citata nell\'avviso: ');
+        }
       }
-      map.fitBounds(bounds, { padding: [20, 20] });
-      map.detourBounds = bounds;
+
+      map.detourBounds = focus.isValid() ? focus : lineBounds;
+      map.fitBounds(map.detourBounds, { padding: [24, 24], maxZoom: 16 });
       deviationMaps.push(map);
     }
 
@@ -1373,15 +1415,13 @@
         card.append(block);
       }
 
-      const mapTasks = [];
-      for (const deviation of deviations) {
-        const block = buildDeviationRoute(line, deviation);
-        if (block.mapTask) mapTasks.push(block.mapTask);
-        card.append(block);
-      }
+      deviations.forEach(deviation => card.append(buildDeviationRoute(deviation)));
+
+      const mapWrap = buildLineMap(line.data);
+      if (mapWrap) card.append(mapWrap);
+      card.mapTasks = mapWrap ? [mapWrap.mapTask] : [];
 
       card.append(externalLink('dev-gtt-link', GTT_LINE_URL + encodeURIComponent(line.key), 'Apri la linea su GTT ›'));
-      card.mapTasks = mapTasks;
       return card;
     }
 

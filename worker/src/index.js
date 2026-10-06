@@ -4,14 +4,15 @@
 // GET /deviazioni?linea=15
 // {
 //   line: "15",
-//   alerts: [{ title, text, date }],
+//   alerts: [{ title, text, date, stops: [{id, name, lat, lng}] }],
 //   deviations: [{ route, direction, from: {id, name}, to: {id, name},
 //                  skipped: [{id, name, lat, lng}] | null, paths: [[[lat, lng], ...]] }],
 //   (`paths` è il tratto del percorso normale NON percorso, non il giro alternativo:
 //    quello GTT lo descrive solo nel testo dell'avviso)
 //   routes: [{ id, verso, name, path: [[lat, lng]], stops: [{id, name, lat, lng}] }]
 // }
-// `routes` contiene solo i percorsi toccati da una deviazione (per la mappa).
+// `routes` (per la mappa) è vuoto se la linea non ha né avvisi né deviazioni.
+// `alerts[].stops` sono le fermate citate nel testo che si trovano sul percorso.
 
 const GTT = 'https://www.gtt.to.it';
 const CACHE_TTL_S = 300;
@@ -68,13 +69,14 @@ async function getLineInfo(line) {
 
   const routes = parseRoutes(page);
   const deviations = buildDeviations(geo, routes);
-  const usedRoutes = new Set(deviations.map(d => d.route));
+  const alerts = parseAlerts(page).map(alert => ({ ...alert, stops: findMentionedStops(alert, routes) }));
+  const hasNews = alerts.length > 0 || deviations.length > 0;
 
   return {
     line,
-    alerts: parseAlerts(page),
+    alerts,
     deviations,
-    routes: routes.filter(r => usedRoutes.has(r.id)),
+    routes: hasNews ? routes.filter(r => r.path.length) : [],
   };
 }
 
@@ -172,6 +174,21 @@ function parseRoutes(page) {
   }
 
   return [...routes.values()].filter(r => r.id);
+}
+
+// "Fermata 558", "fermata n. 559", "Fermata n.1120": numeri di palina citati nell'avviso
+function findMentionedStops(alert, routes) {
+  const ids = new Set();
+  for (const [, id] of `${alert.title}\n${alert.text}`.matchAll(/fermat[ae]\s*(?:n\.?|nr\.?|numero)?\s*(\d{2,5})\b/gi)) {
+    ids.add(id);
+  }
+  const found = new Map();
+  for (const route of routes) {
+    for (const stop of route.stops) {
+      if (ids.has(stop.id) && !found.has(stop.id)) found.set(stop.id, stop);
+    }
+  }
+  return [...found.values()];
 }
 
 // --- Deviazioni --------------------------------------------------------------
