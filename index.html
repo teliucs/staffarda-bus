@@ -31,7 +31,6 @@
     --error: #ffb4b4;
     --warn: #ffb74d;
     --warn-rgb: 255,183,77;
-    --danger: #ff7a7a;
     --radius: 22px;
   }
 
@@ -501,9 +500,9 @@
   .dev-skipped li {
     padding: 3px 9px;
     border-radius: 999px;
-    background: rgba(255,122,122,0.12);
-    border: 1px solid rgba(255,122,122,0.25);
-    color: #ffd0d0;
+    background: rgba(255,210,63,0.1);
+    border: 1px dashed rgba(255,210,63,0.45);
+    color: #ffeeb0;
     font-size: 0.78rem;
   }
 
@@ -540,6 +539,44 @@
     border-radius: 2px;
     vertical-align: middle;
     background: var(--swatch);
+  }
+
+  /* Legenda: oltre al colore cambia la forma, così si distingue anche con il daltonismo */
+  .dev-legend span.is-dashed::before {
+    width: 18px;
+    background: repeating-linear-gradient(90deg, var(--swatch) 0 6px, transparent 6px 9px);
+  }
+
+  .dev-legend span.is-ring::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid var(--swatch);
+    background: #0b1220;
+  }
+
+  .dev-legend span.is-warn::before {
+    content: '!';
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    color: #0b1220;
+    font-size: 0.65rem;
+    font-weight: 900;
+    line-height: 14px;
+    text-align: center;
+  }
+
+  .map-warn-icon {
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    background: #ffd23f;
+    border: 2px solid #0b1220;
+    color: #0b1220;
+    font-size: 0.75rem;
+    font-weight: 900;
+    box-shadow: 0 0 0 2px rgba(255,210,63,0.5);
   }
 
   .dev-gtt-link {
@@ -1284,8 +1321,11 @@
       return deviationsLoading;
     }
 
-    // Colori dei percorsi sulla mappa, uno per direzione
-    const ROUTE_COLORS = ['#5aa9ff', '#4dcdb4', '#b39dff', '#7f8ea8'];
+    // Colori della mappa scelti sull'asse blu-giallo (leggibili anche con protanopia):
+    // le direzioni si distinguono per luminosità, gli elementi della deviazione anche per forma
+    const ROUTE_COLORS = ['#4d9bff', '#b8f0ff', '#8c7dff', '#9aa6b8'];
+    const SKIPPED_COLOR = '#ffd23f';
+    const ENDS_COLOR = '#ffffff';
 
     function buildDeviationRoute(deviation) {
       const block = el('div', 'dev-route');
@@ -1318,16 +1358,22 @@
       const wrap = el('div', 'dev-map-wrap');
       const map = el('div', 'dev-map');
 
-      const items = data.routes.map((route, i) => [routeLabel(route), ROUTE_COLORS[i % ROUTE_COLORS.length]]);
+      const items = data.routes.map((route, i) => [routeLabel(route), ROUTE_COLORS[i % ROUTE_COLORS.length], 'line']);
       if (data.deviations.some(d => d.paths.length)) {
-        items.push(['Tratto non percorso', 'var(--danger)'], ['Inizio e fine deviazione', '#5ee0c0']);
+        items.push(['Tratto non percorso', SKIPPED_COLOR, 'dashed']);
+      }
+      if (data.deviations.some(d => d.skipped?.length)) {
+        items.push(['Fermate saltate', SKIPPED_COLOR, 'ring']);
+      }
+      if (data.deviations.length) {
+        items.push(['Inizio e fine deviazione', ENDS_COLOR, 'ring']);
       }
       if (data.alerts.some(alert => alert.stops?.length)) {
-        items.push(['Fermate citate negli avvisi', 'var(--warn)']);
+        items.push(['Fermate citate negli avvisi', SKIPPED_COLOR, 'warn']);
       }
       const legend = el('div', 'dev-legend');
-      for (const [label, color] of items) {
-        const item = el('span', null, label);
+      for (const [label, color, kind] of items) {
+        const item = el('span', kind === 'line' ? null : `is-${kind}`, label);
         item.style.setProperty('--swatch', color);
         legend.append(item);
       }
@@ -1373,22 +1419,27 @@
         // GTT pubblica il tratto del percorso normale che non viene fatto,
         // non il percorso alternativo (quello è solo nel testo dell'avviso)
         if (deviation.paths.length) {
-          const stretch = L.polyline(deviation.paths, { color: '#ff7a7a', weight: 5, opacity: 0.95, dashArray: '8 6' }).addTo(map);
+          const stretch = L.polyline(deviation.paths, { color: SKIPPED_COLOR, weight: 6, opacity: 1, dashArray: '10 8' }).addTo(map);
           focus.extend(stretch.getBounds());
         }
         for (const stop of deviation.skipped || []) {
-          addStop(stop, { radius: 5, color: '#ff7a7a', weight: 2, fillColor: '#ff7a7a', fillOpacity: 0.6 }, 'Saltata: ');
+          addStop(stop, { radius: 5, color: SKIPPED_COLOR, weight: 3, fillColor: '#0b1220', fillOpacity: 1 }, 'Saltata: ');
         }
         const route = data.routes.find(r => r.id === deviation.route);
         for (const [end, label] of [[deviation.from, 'Inizio deviazione: '], [deviation.to, 'Fine deviazione: ']]) {
           const stop = route?.stops.find(s => s.id === end.id);
-          if (stop) addStop(stop, { radius: 7, color: '#5ee0c0', weight: 3, fillColor: '#0b1220', fillOpacity: 1 }, label);
+          if (stop) addStop(stop, { radius: 8, color: ENDS_COLOR, weight: 4, fillColor: '#0b1220', fillOpacity: 1 }, label);
         }
       }
 
       for (const alert of data.alerts) {
         for (const stop of alert.stops || []) {
-          addStop(stop, { radius: 8, color: '#ffb74d', weight: 3, fillColor: '#ffb74d', fillOpacity: 0.35 }, 'Citata nell\'avviso: ');
+          // Quadrato con "!": stessa tinta delle fermate saltate ma forma diversa
+          L.marker([stop.lat, stop.lng], {
+            icon: L.divIcon({ className: 'map-warn-icon', html: '!', iconSize: [20, 20] }),
+            zIndexOffset: 1000,
+          }).bindTooltip(`Citata nell'avviso: ${stop.name} · ${stop.id}`).addTo(map);
+          focus.extend([stop.lat, stop.lng]);
         }
       }
 
