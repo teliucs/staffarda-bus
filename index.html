@@ -204,7 +204,6 @@
   }
 
   .stop {
-    position: relative;
     width: 100%;
     border: 1px solid var(--border);
     border-left: 4px solid rgb(var(--section-rgb));
@@ -212,21 +211,13 @@
     color: var(--text);
     border-radius: var(--radius);
     padding: 10px 12px;
-    display: grid;
-    grid-template-columns: 1fr auto;
+  }
+
+  .stop-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 10px;
-    align-items: start;
-    cursor: pointer;
-    transition: transform 0.14s ease, background 0.2s ease, border-color 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .stop:hover {
-    background: var(--surface-hover);
-  }
-
-  .stop:active {
-    transform: scale(0.988);
   }
 
   .stop-main {
@@ -235,29 +226,36 @@
   }
 
   .stop-name {
-    display: block;
+    margin: 0;
     font-family: var(--font-display);
     font-size: 1.08rem;
     font-weight: 700;
     letter-spacing: -0.01em;
     color: var(--text);
     line-height: 1.15;
+  }
+
+  /* Unico link verso GTT: piccolo e separato, così un tocco sulla card non porta fuori dall'app */
+  .gtt-link {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
     text-decoration: none;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* Il link del nome copre tutta la card, così resta cliccabile per intero */
-  .stop-link::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
+  .gtt-link:hover {
+    background: var(--surface-hover);
+    color: var(--text);
   }
 
-  .stop-link:focus-visible {
-    outline: none;
-  }
-
-  .stop-link:focus-visible::after {
+  .gtt-link:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
@@ -270,8 +268,6 @@
   }
 
   .stop-code-link {
-    position: relative;
-    z-index: 1;
     color: inherit;
     text-decoration: none;
   }
@@ -343,7 +339,7 @@
   }
 
   .time-slot:first-child {
-    min-width: 4.4em;
+    min-width: 5.3em;
   }
 
   /* Prossimo passaggio in giallo, come i LED dei tabelloni */
@@ -391,16 +387,7 @@
   .stop-live.empty { color: var(--live); }
   .stop-live.error { color: var(--error); }
 
-  .chevron {
-    align-self: center;
-    color: var(--muted);
-    font-size: 1.2rem;
-    padding-top: 2px;
-  }
-
   .line-alert-badge {
-    position: relative;
-    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1179,9 +1166,10 @@
 
     function buildCard(stop) {
       const card = el('article', 'stop');
+      const head = el('div', 'stop-head');
       const main = el('div', 'stop-main');
 
-      main.append(externalLink('stop-name stop-link', stopUrl(stop.sources[0].code), stop.name));
+      main.append(el('h2', 'stop-name', stop.name));
 
       // Con più paline ogni codice ha il suo link
       const codesEl = el('span', 'stop-code');
@@ -1194,15 +1182,16 @@
       });
       main.append(codesEl);
 
+      const gttLink = externalLink('gtt-link', stopUrl(stop.sources[0].code), 'GTT ↗');
+      gttLink.setAttribute('aria-label', `${stop.name} sul sito GTT`);
+      head.append(main, gttLink);
+
+      // Gli orari stanno sotto l'intestazione e usano tutta la larghezza della card
       const live = el('div');
       liveEls.set(stop, live);
-      main.append(live);
       renderLive(stop, Date.now());
 
-      const chevron = el('div', 'chevron', '›');
-      chevron.setAttribute('aria-hidden', 'true');
-
-      card.append(main, chevron);
+      card.append(head, live);
       return card;
     }
 
